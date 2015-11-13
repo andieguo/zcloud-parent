@@ -30,7 +30,7 @@ public class LogWriter {
 
 	private LogWriter(String fileName) throws Exception {
 		this.logFileName = fileName;
-		File logFile = new File(ClassLoader.getSystemResource("log").getPath()+File.separator+this.logFileName);
+		File logFile = new File(this.getClass().getResource("/log").getPath()+File.separator+this.logFileName);
 		try {
 			// 其中的FileWriter()中的第二个参数的含义是:是否在文件中追加内容
 			// PrintWriter()中的第二个参数的含义是：自动将数据flush到文件中

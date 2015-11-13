@@ -11,6 +11,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.ExecutorService;
@@ -23,7 +24,7 @@ import org.zonesion.hadoop.base.bean.Gate;
 import org.zonesion.hadoop.base.bean.HistoryURL;
 import org.zonesion.hadoop.base.bean.Sensor;
 import org.zonesion.hadoop.base.util.LogWriter;
-import org.zonesion.hadoop.base.util.PropertiesHelper;
+import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.base.util.Rest;
 import org.zonesion.hadoop.base.util.XmlService;
 import org.zonesion.hadoop.local.view.DownloadView;
@@ -32,14 +33,16 @@ import org.zonesion.hadoop.local.view.DownloadView;
 public class RestLocal 
 {
 	private HttpURLConnection connection;
-	private PropertiesHelper propertiesHelper ;
+	private Properties properties;
 	private LogWriter logger;
 	private String dstPath;
+	private String PATH = "/local_update.properties";//类路径配置文件：记录下载最后更新的时间点
 
 	public RestLocal(String dstPath) {
 		super();
 		this.dstPath = dstPath;
-		this.propertiesHelper = PropertiesHelper.getInstance("local_update.properties");//记录最新的更新时间
+		InputStream input = this.getClass().getResourceAsStream(PATH);//从类路径下加载
+		properties = PropertiesUtil.loadFromInputStream(input);
 		try {
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 			logger = LogWriter.getLogWriter(format.format(new java.util.Date())+".log");//日志文件存放在类路径log文件夹下
@@ -90,7 +93,7 @@ public class RestLocal
 				return endAt;
 			}else{//最后一片段文件
 				//记录每一个分片的开始时间点,用于指定开始时间
-				propertiesHelper.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
+				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
 				return "";
 			}
 		}
@@ -155,16 +158,31 @@ public class RestLocal
 		public void run() {
 			logger.log("FinnishJobRunable在等待所有的读历史数据线程执行完毕！");
 			logger.logTextArea("等待读取历史数据线程开始执行......");
+			OutputStream out = null;
 			try {
 				this.downLatch.await();
 				logger.logTextArea("任务执行完毕！");
 				logger.log("FinnishJobRunable释放连接资源！");
 				//释放资源
 				 //connection.disconnect();//释放连接
-				 propertiesHelper.destroy();
-				 logger.close();
+				String path = this.getClass().getResource(PATH).getPath();
+				out = new FileOutputStream(new File(path));
+				properties.store(out, "update");
+				logger.close();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+			}catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally{
+				if(out !=null)
+					try {
+						out.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 			}
 		}
 	}
@@ -189,7 +207,7 @@ public class RestLocal
 			for(Gate gate:gateList){
 				for(Sensor sensor:gate.getSensors()){
 					//读取最新的更新记录
-					String starttime = propertiesHelper.getProperty(gate.getUserid()+";"+sensor.getChannal());
+					String starttime = properties.getProperty(gate.getUserid()+";"+sensor.getChannal());
 					HistoryURL historyURL = new HistoryURL(gate.getServerAddr(), gate.getUserid(),gate.getUserkey(), sensor.getChannal(),starttime);
 					QueryRunnable queryRunnable = new QueryRunnable(downLatch,exchanger, historyURL);//多线程执行--是否有公共资源
 					 service.execute(queryRunnable);//为线程池添加任务

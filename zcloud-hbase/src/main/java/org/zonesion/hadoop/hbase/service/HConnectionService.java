@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -19,7 +20,7 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.PageFilter;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.zonesion.hadoop.base.util.PropertiesHelper;
+import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.hbase.bean.QueryResult;
 
 public class HConnectionService {
@@ -42,7 +43,8 @@ public class HConnectionService {
 	
 	public void connect(){
 		Configuration conf = HBaseConfiguration.create();
-		conf.set("hbase.zookeeper.quorum",PropertiesHelper.getInstance("hbase-config.properties").getProperty("hbase.zookeeper.quorum"));
+		Properties properties = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/hbase-config.properties"));
+		conf.set("hbase.zookeeper.quorum",properties.getProperty("hbase.zookeeper.quorum"));
 		try {
 			 connection = HConnectionManager.createConnection(conf);
 			 htable = connection.getTable(tablename);

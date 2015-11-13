@@ -3,6 +3,7 @@ package org.zonesion.hadoop.mr.hbase.combiner;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -16,7 +17,7 @@ import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.zonesion.hadoop.base.util.PropertiesHelper;
+import org.zonesion.hadoop.base.util.PropertiesUtil;
 
 public class Main {
 
@@ -24,8 +25,8 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		String tablename = "zcloud";
 		Configuration conf = HBaseConfiguration.create();
-		conf.set("hbase.zookeeper.quorum",
-				PropertiesHelper.getInstance("hbase-config.properties").getProperty("hbase.zookeeper.quorum"));
+		Properties properties = PropertiesUtil.loadFromInputStream(Main.class.getResourceAsStream("/hbase-config.properties"));
+		conf.set("hbase.zookeeper.quorum",properties.getProperty("hbase.zookeeper.quorum"));
 		conf.addResource("classpath:/hadoop/core-site.xml");
 		conf.addResource("classpath:/hadoop/hdfs-site.xml");
 		conf.addResource("classpath:/hadoop/mapred-site.xml");
