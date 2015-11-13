@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<gates>
+<gate>
+<serverAddr>t.zhiyun360.com</serverAddr>
+<userid>1155223953</userid>
+<userkey>Xrk6UicNrbo3KiX1tYDDaUq9HAMHBYhuE2Sb4NLKFKdNcLH5</userkey>
+<sensors>
+<sensor title="湿度传感器" unit="%">00:12:4B:00:02:CB:A8:52_A1</sensor>
+<sensor title="温度传感器" unit="℃">00:12:4B:00:02:CB:A8:52_A0</sensor>
+<sensor title="光敏传感器" unit="LF">00:12:4B:00:02:CB:A9:C7_A0</sensor>
+</sensors>
+</gate>
+<gate>
+<serverAddr>zhiyun360.com</serverAddr>
+<userid>1674047509</userid>
+<userkey>wZ3FW0dgjyjxmNem5QrGvOCksYQzy845ii9zDRVuY9aDx2zt</userkey>
+<sensors>
+<sensor title="温度传感器" unit="℃">00:12:4B:00:03:D4:41:57_A0</sensor>
+<sensor title="湿度传感器" unit="%">00:12:4B:00:03:D4:41:57_A1</sensor>
+<sensor title="光敏传感器" unit="LF">00:12:4B:00:05:52:7C:16_A0</sensor>
+</sensors>
+</gate>
+<gate>
+<serverAddr>zhiyun360.com</serverAddr>
+<userid>367953136</userid>
+<userkey>ACk7HcdxNIf2Gl7TOrgrZk3XN9lh9TPwdhzA4Cq9aRTIXemX</userkey>
+<sensors>
+<sensor title="温度传感器" unit="℃">00:12:4B:00:05:3C:E2:7B_A0</sensor>
+<sensor title="湿度传感器" unit="%">00:12:4B:00:05:3C:E2:7B_A1</sensor>
+<sensor title="光敏传感器" unit="LF">00:12:4B:00:05:3C:E4:7C_A0</sensor>
+</sensors>
+</gate>
+<gate>
+<serverAddr>zhiyun360.com</serverAddr>
+<userid>23710173</userid>
+<userkey>kvpOdBCLSf2TKQLzm7g8TGxn2YWtTqAaaIA3X7NDL4QYGHko</userkey>
+<sensors>
+<sensor title="温度传感器" unit="℃">00:12:4B:00:01:49:2C:42_A0</sensor>
+<sensor title="湿度传感器" unit="%">00:12:4B:00:01:49:2C:42_A1</sensor>
+</sensors>
+</gate>
+</gates>

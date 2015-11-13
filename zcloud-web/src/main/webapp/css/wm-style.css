@@ -1,0 +1,36 @@
+.fade{
+    position: absolute;
+    width: 795px;
+}
+.panel-heading h3{
+    font-size: 12px;
+    color: #333;
+    font-weight: bold;
+}
+.table{
+    margin-bottom: 0;
+}
+.btn-group {
+    width: 763px;
+}
+.btn-group .btn {
+    width: 128px;
+    border-radius: 0;
+    font-size: 12px;
+    line-height: 1em;
+}
+.input-group * {
+    height: 30px;
+    font-size: 12px;
+    padding: 5px 10px;
+}
+#qy{
+    z-index: 4
+}
+.nc,.cpu,.cc{
+    height: 160px;
+}
+
+.pt0 {
+    padding-top: 0;
+}

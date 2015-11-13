@@ -1,0 +1,94 @@
+body{
+    margin: 0;
+    padding: 0;
+    font-size: 12px;
+    background-color: #ede7e7;
+    background: url(../images/header-bg.jpg) repeat-x top;
+}
+#header{
+    width: 1024px;
+    height: 120px;
+    margin: 0 auto;
+    position: relative;
+}
+#header h1{
+    margin: 0;
+    padding: 14px 0 0 20px;
+    color: white;
+    font-size: 36px;
+    font-family: "微软雅黑", "黑体", "宋体";
+}
+#nav{
+    background-image: url(../images/nav-bg.jpg);
+    width: 1024px;
+    height: 50px;
+    border-radius: 5px 5px 0 0;
+    position: absolute;
+    bottom: 0px;
+}
+#nav-title{
+    list-style-type:none;
+    margin: 13px;
+    padding: 0;
+}
+#nav-title li{
+    float: left;
+    background: url(../images/nav-tr.jpg) repeat-y right;
+    height: 27px;
+}
+#nav-title li a{
+    text-decoration: none;
+    color: #01091a;
+}
+#nav-title li a:hover{
+    text-decoration: none;
+    color: #0b376c;
+}
+#nav-title li span{
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px 23px 10px 20px;
+    font-family: "微软雅黑", "黑体", "宋体";
+}
+#main{
+    width:  1024px;
+    margin: 0 auto;
+    background-color: #dcdada;
+}
+#subnav{
+    width: 200px;
+    float: left;
+}
+.subnav-title{
+    list-style-type:none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+.subnav-title li{
+    text-align: center;
+    background: url(../images/subnav-tb.jpg) no-repeat bottom;
+}
+.subnav-title li a{
+    text-decoration: none;
+    display: block;
+    color: #01091a;
+}
+.subnav-title li a:hover{
+    text-decoration: none;
+    background: #0b376c;
+    color: #fff;
+}
+.subnav-title li span{
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 60px;
+}
+.content{
+    width: 824px;
+    min-height: 644px;
+    float: left;
+    background: #ede7e7;
+    padding: 15px;
+    box-shadow:5px 0 5px #bbb inset;
+}
