@@ -55,6 +55,7 @@
 				url : url,
 				dataType : "json",
 				success : function(data){//回调函数 
+					console.log('data：',data);
 					console.log('length：',data.sensor.length);
 					console.log("title：",data.sensor[0].title);
 					var sensorSelect = $("#sensorSelect");
@@ -82,14 +83,14 @@
 </body>
 <!--页头S-->
 <div id="header">
-    <h1>CloudStack</h1>
+    <h1>DataAnalysis</h1>
     <!--一级导航栏S-->
     <div id="nav">
         <ul id="nav-title">
-            <li><a href="index.html"><span>CloudStack</span></a></li>
-            <li><a href="#"><span>hadoop</span></a></li>
-            <li><a href="zhiyun360.html"><span>zhiyun360</span></a></li>
-            <li><a href="wm.html"><span>wm</span></a></li>
+            <li><a href="index.jsp"><span>CloudStack</span></a></li>
+            <li><a href="hadoop.jsp"><span>hadoop</span></a></li>
+            <li><a href="zhiyun360.jsp"><span>zhiyun360</span></a></li>
+            <li><a href="wm.jsp"><span>DataAnalysis</span></a></li>
         </ul>
     </div>
     <!--一级导航栏E-->
@@ -162,7 +163,7 @@
                     <table id="tab_zone" class="table table-bordered table-condensed">
                         <thead>
                         <tr>
-                            <th>数据分析1</th>
+                            <th>数据分析信息展示</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -177,7 +178,7 @@
                     <table id="tab_zone" class="table table-bordered table-condensed">
                         <thead>
                         <tr>
-                            <th>数据分析1</th>
+                            <th>数据分类信息展示</th>
                         </tr>
                         </thead>
                         <tbody>

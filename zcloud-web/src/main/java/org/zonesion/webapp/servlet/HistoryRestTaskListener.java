@@ -18,6 +18,7 @@ public class HistoryRestTaskListener implements ServletContextListener {
 	 */  
 	public void contextDestroyed(ServletContextEvent arg0) {
 		// TODO Auto-generated method stub
+		System.out.println("==========================关闭容器=========================");
 		hConnectionService.disconnect();
 	}
 
@@ -26,6 +27,7 @@ public class HistoryRestTaskListener implements ServletContextListener {
 	 */  
 	public void contextInitialized(ServletContextEvent arg0) {
 		// TODO Auto-generated method stub
+		System.out.println("==========================启动容器=========================");
 		hConnectionService.connect();//执行HBase连接，为HBase REST服务提供访问HBase连接。
 		new TimerManager();//启动定时任务(访问智云历史数据，并上传到HDFS)
 	}

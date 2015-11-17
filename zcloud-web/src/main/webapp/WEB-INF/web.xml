@@ -19,9 +19,36 @@
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	
+	<servlet>
+		<servlet-name>NameNodeServlet</servlet-name>
+		<servlet-class>org.zonesion.webapp.servlet.NameNodeServlet</servlet-class>
+	</servlet>
+		
+	<servlet>
+		<servlet-name>JobTrackerServlet</servlet-name>
+		<servlet-class>org.zonesion.webapp.servlet.JobTrackerServlet</servlet-class>
+	</servlet>
+	
+	<servlet>
+		<servlet-name>RestServlet</servlet-name>
+		<servlet-class>org.zonesion.webapp.servlet.RestServlet</servlet-class>
+	</servlet>
+	
 	<servlet-mapping>
 		<servlet-name>ServletContainer</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>NameNodeServlet</servlet-name>
+		<url-pattern>/servlet/namenode</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>JobTrackerServlet</servlet-name>
+		<url-pattern>/servlet/jobtracker</url-pattern>
+	</servlet-mapping>
+		<servlet-mapping>
+		<servlet-name>RestServlet</servlet-name>
+		<url-pattern>/servlet/dorest</url-pattern>
 	</servlet-mapping>
 
 </web-app>

@@ -92,3 +92,6 @@ body{
     padding: 15px;
     box-shadow:5px 0 5px #bbb inset;
 }
+.table {
+	font-size:12px;
+}
