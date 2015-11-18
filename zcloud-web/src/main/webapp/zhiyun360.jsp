@@ -32,12 +32,31 @@
 }
 </style>
 <script>
+	function onclick_1(){
+		var getHeight =  $("#qy").height() + 30;
+      console.log("getHeight",getHeight);
+      var contentHeight = "height:" + getHeight + "px";
+      $("#qy").parent().attr("style", contentHeight);
+	}
 	function onclick_2(obj) {
 		$("#qy").attr("style", "z-index:4");
 		//$("#qj").attr("style", "z-index:3");
 		$("#zj").attr("style", "z-index:2");
 		//$("#yh").attr("style", "z-index:1");
 		$($(obj).attr("href")).attr("style", "z-index:99");
+      var getHeight = $($(obj).attr("href")).height() + 30;
+      var contentHeight = "height:" + getHeight + "px";
+      $($(obj).attr("href")).parent().attr("style", contentHeight);
+	}
+	
+	function onclick_3(obj){
+		var attr = $(obj).next().attr("class");
+		if(attr == "collapse in"){
+			$(obj).next().attr("class","collapse ");
+		}else{
+			$(obj).next().attr("class","collapse in");
+		}
+		onclick_1();
 	}
 
 	function ForDight(Dight, How) {
@@ -47,12 +66,12 @@
 
 	function idkey_add(data) {
 		for (var i = 0; i < data.gate.length; i++) {
-			var tr1 = '<tr>';
+			var tr1 = '<tr onclick="onclick_3(this)">';
 			tr1 += "<td>" + data.gate[i].serverAddr + "</td>";
 			tr1 += "<td>" + data.gate[i].userid + "</td>";
 			tr1 += "<td>" + data.gate[i].userkey + "</td>";
 			tr1 += "</tr>";
-			var tr2 = '<tr class="collapse in" style="background: #ede7e7;">';
+			var tr2 = '<tr class="collapse " style="background: #ede7e7;">';
 			tr2 += '<td colspan="3">';
 			tr2 += '<table class="table table-bordered table-condensed">'
 			tr2 += '<tr><td>通道名</td><td>通道地址</td><td>单位</td></tr>'
@@ -68,7 +87,6 @@
 			tr2 += "</table></td></tr>";
 			$("#tab_idkey").append(tr1);
 			$("#tab_idkey").append(tr2);
-			console.log("----------------",$("#tab_idkey").html());
 		}
 	}
 
@@ -150,6 +168,7 @@
 			type : "GET",
 			url : "rest/gate",
 			dataType : "json",
+			complete: onclick_1,
 			success : function(data) {//回调函数 
 				console.log('data：', data);
 				idkey_add(data);
@@ -158,6 +177,8 @@
 				alert("系统出现问题");
 			}
 		});
+      
+		
 	});
 </script>
 </head>

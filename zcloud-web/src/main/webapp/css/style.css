@@ -86,7 +86,7 @@ body{
 }
 .content{
     width: 824px;
-    min-height: 644px;
+    min-height: 500px;
     float: left;
     background: #ede7e7;
     padding: 15px;

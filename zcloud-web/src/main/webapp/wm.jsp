@@ -70,6 +70,12 @@
 				}
 			});
 		}
+		$(function(){
+			var getHeight =  $("#qy").height() + 30;
+	      console.log("getHeight",getHeight);
+	      var contentHeight = "height:" + getHeight + "px";
+	      $("#qy").parent().attr("style", contentHeight);
+		});
 	</script>
 </head>
 <body>

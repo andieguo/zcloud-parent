@@ -43,6 +43,9 @@
             $("#zj").attr("style", "z-index:2");
             $("#yh").attr("style", "z-index:1");
             $($(obj).attr("href")).attr("style", "z-index:5");
+            var getHeight = $($(obj).attr("href")).height() + 30;
+            var contentHeight = "height:" + getHeight + "px";
+            $($(obj).attr("href")).parent().attr("style", contentHeight);
         }
         function ForDight(Dight,How){
             Dight = Math.round(Dight*Math.pow(10,How))/Math.pow(10,How);
@@ -90,9 +93,11 @@
         }
         
         function printTable(data,tab){
+        		tab.not("tr:first").empty();
 	        	for (var i=0; i<data.length; i++) {
-	     		   var mapProgress = ForDight(data[i].mapProgress,4)*100;
-	     		   var reduceProgress = ForDight(data[i].reduceProgress,4)*100;
+	     		   var mapProgress = (data[i].mapProgress).toFixed(2)*100;
+	     		   var reduceProgress = (data[i].mapProgress).toFixed(2)*100;
+	     		   console.log("mapProgress",mapProgress);
 		            var tr1 = "<tr>"; 
 		            tr1 += "<td>"+data[i].jobId+"</td>";
 		            tr1 += "<td>"+data[i].jobName+"</td>";
@@ -128,49 +133,68 @@
      		}   
          }
         
-       function on_mr(err, mr) {
-	        	printTable(mr.running,$("#tab_running"));
-	        	printTable(mr.failed,$("#tab_failed"));
-	        	printTable1(mr.completed,$("#tab_completed"));
-	        	printTable1(mr.killed,$("#tab_killed"));
-       	 }
-        
-      function getJobtracker(){
-        		
-         }
-       
-        $(function(){
-        	//on_dfs(null, dfs);
-        	//on_mr(null, mr);
-        	$.ajax({//调用JQuery提供的Ajax方法 
-				type : "GET",
-				url : "servlet/namenode",
-				dataType : "json",
-				success : function(data){//回调函数 
-					console.log(data);
-					on_dfs(null, data);
-				},
-				error : function() {
-					alert("系统出现问题");
-				}
-			});
-        	$.ajax({//调用JQuery提供的Ajax方法 
+      function getRuningJob(){
+    	  $.ajax({//调用JQuery提供的Ajax方法 
 				type : "GET",
 				url : "servlet/jobtracker",
 				dataType : "json",
 				success : function(data){//回调函数 
 					console.log(data);
-					on_mr(null, data);
+					if(data.running.length > 0){
+						console.log("执行了getRuningJob方法");
+						window.setTimeout(getRuningJob,1000);//休息1S后执行getRuningJob方法
+						printTable(data.running,$("#tab_running"));
+					}
 				},
 				error : function() {
 					alert("系统出现问题");
 				}
 			});
+         }
+      
+      function getOtherJob(){
+    	  $.ajax({//调用JQuery提供的Ajax方法 
+				type : "GET",
+				url : "servlet/jobtracker",
+				dataType : "json",
+				success : function(data){//回调函数 
+					//console.log(data);
+					printTable(data.failed,$("#tab_failed"));
+		        	printTable1(data.completed,$("#tab_completed"));
+		        	printTable1(data.killed,$("#tab_killed"));
+				},
+				error : function() {
+					alert("系统出现问题");
+				}
+			});
+         }
+      
+      function getNameNode(){
+			
+          $.ajax({//调用JQuery提供的Ajax方法 
+  				type : "GET",
+  				url : "servlet/namenode",
+  				dataType : "json",
+				complete:function(){$("#load").hide();},
+  				success : function(data){//回调函数 
+  					console.log(data);
+  					on_dfs(null, data);
+  				},
+  				error : function() {
+  					alert("系统出现问题");
+  				}
+  			});
+      }
+       
+	  $(function(){
+		   var num = 0.57999974;
+		   console.log(num.toFixed(2));
+		   getRuningJob();
+		   getOtherJob();
+		   getNameNode();
         	$("#mapreduceId").click(function(){
         		
         	});
-        	//window.rest.get('http://192.168.100.141:50030/jobtracker', "on_mr"); 
-        	//window.rest.get('http://192.168.100.141:50070/dfshealth', "on_dfs"); 
     	});
     </script>
 </head>
