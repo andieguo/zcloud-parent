@@ -1,9 +1,51 @@
+//获取系统当前时间
+function getTheDate() {
+    var myDate = new Date();
+    var year = (myDate.getFullYear());
+    var month = (myDate.getMonth() + 1);
+    var date = (myDate.getDate());
+    var hours = (myDate.getHours());
+    var minutes = (myDate.getMinutes());
+    var seconds = (myDate.getSeconds());
+    return (year + '-' + month + '-' + date + ' ' + hours + ':' + minutes + ':' + seconds);
+} 
+
 function onclick_2(obj){
             $("#qy").attr("style", "z-index:4");
             $("#qj").attr("style", "z-index:3");
             $("#zj").attr("style", "z-index:2");
             $("#yh").attr("style", "z-index:1");
             $($(obj).attr("href")).attr("style", "z-index:5");
+}
+
+//加载sensor
+function loadSensor(userid) {
+	if(userid == 0) {
+		var sensorSelect = $("#sensorSelect");
+		sensorSelect.empty(); //初始化否则会追加 
+		sensorSelect.append("<option value='0'>请选择...</option>");
+		return;
+	}
+	var url = "rest/sensor/userid/" + userid;//要么使用相对路径"rest/sensor/userid/"，要么使用绝对路径："/zcloud-web/rest/sensor/userid/"
+	$.ajax({//调用JQuery提供的Ajax方法 
+		type : "GET",
+		url : url,
+		dataType : "json",
+		success : function(data){//回调函数 
+			console.log('data：',data);
+			console.log('length：',data.sensor.length);
+			console.log("title：",data.sensor[0].title);
+			var sensorSelect = $("#sensorSelect");
+			sensorSelect.empty(); //初始化否则会追加 
+			for (var i = 0; i < data.sensor.length; i++) {
+				sensorSelect.append("<option channal='"+data.sensor[i].channal+"' unit='"+data.sensor[i].unit+"'>"
+						+ data.sensor[i].title + "</option>");
+			}
+		},
+		error : function() {
+			alert("系统出现问题");
+		}
+	});
 }
 
 //解析JSON格式数据为图表数据
@@ -60,7 +102,7 @@ function analyze(data){
 }
 
 //绘制曲线
-function drawCurve(categories,curveSeries) {
+function drawCurve(unit,categories,curveSeries) {
     $('#container01').highcharts({
         chart:{
             margin: [ 15, 110, 30, 60],
@@ -78,7 +120,7 @@ function drawCurve(categories,curveSeries) {
         yAxis: {
             tickInterval: 10,
             title: {
-                text: '最大值/最小值/平均值分析'
+                text: "单位："+unit
             },
             plotLines: [{
                 value: 0,
@@ -87,7 +129,7 @@ function drawCurve(categories,curveSeries) {
             }]
         },
         tooltip: {
-            valueSuffix: '°C'
+            valueSuffix: unit
         },
         legend: {
             layout: 'vertical',
@@ -135,7 +177,7 @@ function drawColumn(categories,columnSeries) {
             min: 0,
             tickInterval: 50,
             title: {
-                text: '个数'
+                text: '单位：个'
             }
         },
         tooltip: {

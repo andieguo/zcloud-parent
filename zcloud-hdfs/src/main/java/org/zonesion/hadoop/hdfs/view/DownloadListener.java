@@ -17,7 +17,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.ipc.RemoteException;
 import org.xml.sax.SAXException;
 import org.zonesion.hadoop.base.util.LogListener;
-import org.zonesion.hadoop.base.util.LogWriter;
 import org.zonesion.hadoop.hdfs.util.RestHDFS;
 
 
@@ -26,19 +25,10 @@ public class DownloadListener extends LogListener implements ActionListener {
 	String src = null;
 	static double Length = 0;
 	static long startTime = 0;
-	LogWriter logWriter ;
 	String line="";
 
 	public DownloadListener(DownloadView downloadView) {
 		this.downloadView = downloadView;
-		try {
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			logWriter = LogWriter.getLogWriter(File.separator+format.format(new java.util.Date())+".log");
-			logWriter.registerLogListener(this);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -51,7 +41,7 @@ public class DownloadListener extends LogListener implements ActionListener {
 			src = null;line = "";
 			downloadView.srcText.setText("");
 			downloadView.logTextArea.setText("");
-			DownloadView.progressBar.setValue(0);
+			downloadView.progressBar.setValue(0);
 		} else if (e.getActionCommand().equals("OK")) {
 			startTime = System.currentTimeMillis();
 			final String hdfsName = downloadView.hdfsText.getText();
@@ -63,30 +53,31 @@ public class DownloadListener extends LogListener implements ActionListener {
 						try {
 							File file = new File(src);
 							if(file.isFile()){//校验配置文件
-								logWriter.logTextArea("正在连接HDFS服务器........");
+								log("正在连接HDFS服务器........");
 							    Configuration conf = new Configuration();
 						        conf.set("fs.default.name", hdfsName);
 						        FileSystem fs = FileSystem.get(conf);
 								if(fs != null){//校验HDFS
 									fs.close();
-									logWriter.logTextArea("HDFS服务器连接成功!");
+									log("HDFS服务器连接成功!");
 									RestHDFS rest = new RestHDFS(hdfsName);
+									rest.registerLogListener(DownloadListener.this);
 									rest.executeJob(src);
 								}else{
-									logWriter.logTextArea("HDFS服务器连接失败!");
+									log("HDFS服务器连接失败!");
 									JOptionPane.showMessageDialog(null, "HDFS服务器连接失败!");
 								}
 							}else{
-								logWriter.logTextArea("配置文件必须为文件!");
+								log("配置文件必须为文件!");
 								JOptionPane.showMessageDialog(null, "配置文件必须为文件!");
 							}
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							if(e instanceof IOException || e instanceof ConnectException || e instanceof RemoteException || e instanceof NoRouteToHostException){
-								logWriter.logTextArea("HDFS服务器连接失败!");
+								log("HDFS服务器连接失败!");
 								JOptionPane.showMessageDialog(null, "HDFS服务器连接失败!");
 							}else if(e instanceof SAXException){
-								logWriter.logTextArea("配置文件格式错误!");
+								log("配置文件格式错误!");
 								JOptionPane.showMessageDialog(null, "配置文件格式错误!");
 							}
 							e.printStackTrace();
@@ -95,11 +86,11 @@ public class DownloadListener extends LogListener implements ActionListener {
 				}).start();
 			}else{
 				if(src ==null) { 
-					logWriter.logTextArea("配置文件地址不为空!");
+					log("配置文件地址不为空!");
 					JOptionPane.showMessageDialog(null, "配置文件地址不为空!");
 				}
 				else if(hdfsName.equals("")) {
-					logWriter.logTextArea("HDFS服务器地址不为空!");
+					log("HDFS服务器地址不为空!");
 					JOptionPane.showMessageDialog(null, "HDFS服务器地址不为空!");
 				}
 			}
@@ -135,9 +126,17 @@ public class DownloadListener extends LogListener implements ActionListener {
 	@Override
 	public void log(String info) {
 		// TODO Auto-generated method stub
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder builder = new StringBuilder(line);
-		line = builder.append(info).append("\r\n").toString();
+		line = builder.append(format.format(new java.util.Date())).append(":").append(info).append("\r\n").toString();
 		downloadView.logTextArea.setText(line);
+	}
+
+	@Override
+	public void progress(int i, int sum) {
+		// TODO Auto-generated method stub
+		int precent=(int)( ((float)i/(float)sum)*100); 
+		downloadView.progressBar.setValue(precent); 
 	}
 
 }

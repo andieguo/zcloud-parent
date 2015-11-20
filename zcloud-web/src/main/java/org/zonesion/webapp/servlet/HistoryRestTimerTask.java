@@ -21,7 +21,7 @@ public class HistoryRestTimerTask  extends TimerTask{
 	public void run() {
 		// TODO Auto-generated method stub
 		System.out.println("==========================开始执行定时任务==========================");
-		//localTask();
+		//hdfsTask();
 	}
 	
 	public void localTask(){

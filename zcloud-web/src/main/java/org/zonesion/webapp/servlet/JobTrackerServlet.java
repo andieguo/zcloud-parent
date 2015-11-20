@@ -2,19 +2,18 @@ package org.zonesion.webapp.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobID;
 import org.apache.hadoop.mapred.JobStatus;
@@ -34,16 +33,17 @@ public class JobTrackerServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		Configuration conf = new Configuration();
 		JobStatus[] jobStatusAll;
-		JobClient jobClient;
+		JobClient jobClient = null;
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-ddHH:mm:ss");
 		List<JobSummaryInfo> runningJobs = new ArrayList<JobSummaryInfo>();
 		List<JobSummaryInfo> completedJobs = new ArrayList<JobSummaryInfo>();
 		List<JobSummaryInfo> failedJobs = new ArrayList<JobSummaryInfo>();
 		List<JobSummaryInfo> killedJobs = new ArrayList<JobSummaryInfo>();
+		ServletContext servletContext = getServletContext();
 		try {
-			jobClient = new JobClient(new InetSocketAddress("192.168.100.141",9001), conf);
+			
+			jobClient = (JobClient) servletContext.getAttribute("jobClient");
 			jobStatusAll =	jobClient.getAllJobs();
 			for(JobStatus status:jobStatusAll){
 				JobID jobid = status.getJobID();//jobidjob_201511091736_0001

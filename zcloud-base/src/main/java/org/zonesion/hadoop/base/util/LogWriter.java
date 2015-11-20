@@ -18,8 +18,6 @@ public class LogWriter {
 	// 日志文件名
 	private String logFileName;
 	
-	private LogListener logListener = null;
-
 	public synchronized static LogWriter getLogWriter(String logFileName)
 			throws Exception {
 		if (logWriter == null) {
@@ -55,14 +53,6 @@ public class LogWriter {
 		this.writer.println(info);
 	}
 	
-	public synchronized void logTextArea(String logMsg) {
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String info = format.format(new java.util.Date()) + ": " + logMsg;
-		if(logListener != null){
-			logListener.log(info);
-		}
-	}
-
 	/**
 	 * 往日志文件中写一条异常信息 使用synchronized关键字。
 	 * 
@@ -82,10 +72,6 @@ public class LogWriter {
 		if (writer != null) {
 			writer.close();
 		}
-	}
-
-	public void registerLogListener(LogListener logListener) {
-		this.logListener = logListener;
 	}
 
 	public String getLogFileName() {

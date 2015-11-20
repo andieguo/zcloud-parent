@@ -187,8 +187,6 @@
       }
        
 	  $(function(){
-		   var num = 0.57999974;
-		   console.log(num.toFixed(2));
 		   getRuningJob();
 		   getOtherJob();
 		   getNameNode();

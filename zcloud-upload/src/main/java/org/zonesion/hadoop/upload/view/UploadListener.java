@@ -22,7 +22,7 @@ import org.zonesion.hadoop.base.util.LogWriter;
 public class UploadListener extends LogListener implements ActionListener{
 	UploadView uploadView = null;
 	String src = null;
-	static double Length = 0;
+	static int Length = 0;
 	static long startTime = 0;
 	LogWriter logWriter;
 	String line = "";
@@ -30,15 +30,6 @@ public class UploadListener extends LogListener implements ActionListener{
 
 	public UploadListener(UploadView uploadView) {
 		this.uploadView = uploadView;
-		try {
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			logWriter = LogWriter.getLogWriter(File.separator+format.format(new java.util.Date())+".log");
-			logWriter.registerLogListener(this);
-			uploadTool = new UploadTool(logWriter);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -51,7 +42,7 @@ public class UploadListener extends LogListener implements ActionListener{
 			line = "";src = null;
 			uploadView.srcText.setText("");
 			uploadView.logTextArea.setText("");
-			UploadView.progressBar.setValue(0);
+			uploadView.progressBar.setValue(0);
 		} else if (e.getActionCommand().equals("OK")) {
 			startTime = System.currentTimeMillis();
 			final String hdfsName = uploadView.hdfsText.getText();
@@ -64,38 +55,40 @@ public class UploadListener extends LogListener implements ActionListener{
 							File file = new File(src);
 							if(file.isDirectory()){//校验src
 								if(src.endsWith("zcloud")){//校验src
-									logWriter.logTextArea("正在连接HDFS服务器........");
+									log("正在连接HDFS服务器........");
 									Configuration conf = new Configuration();
 									conf.set("fs.default.name",hdfsName);
 									FileSystem fs = FileSystem.get(conf);
 									if(fs != null){//校验服务器是否能连接上
-										logWriter.logTextArea("HDFS服务器连接成功！");
+										log("HDFS服务器连接成功！");
 										File srcFile = new File(src);
+										uploadTool = new UploadTool();
+										uploadTool.registerLogListener(UploadListener.this);
 										if (srcFile.isDirectory()) {
 											uploadTool.copyDirectory(src,"/user/hadoop/zcloud", conf);
 										} else {
 											uploadTool.copyFile(src, "/user/hadoop/zcloud",conf);
 										}
-										logWriter.logTextArea("上传任务完成！");
+										log("上传任务完成！");
 									}else{
-										logWriter.logTextArea("HDFS服务器连接失败！");
+										log("HDFS服务器连接失败！");
 										JOptionPane.showMessageDialog(null, "HDFS服务器连接失败！");
 									}
 								}else{
-									logWriter.logTextArea("错误格式的本地数据源！");
+									log("错误格式的本地数据源！");
 									JOptionPane.showMessageDialog(null, "错误格式的本地数据源！");
 								}
 							}else{
-								logWriter.logTextArea("本地数据源必须是文件夹！");
+								log("本地数据源必须是文件夹！");
 								JOptionPane.showMessageDialog(null, "本地数据源必须是文件夹！");
 							}
 						} catch (Exception e) {
 							System.out.println("发生异常");
 							if(e instanceof IOException || e instanceof ConnectException || e instanceof RemoteException || e instanceof NoRouteToHostException){
-								logWriter.logTextArea("HDFS服务器连接失败!");
+								log("HDFS服务器连接失败!");
 								JOptionPane.showMessageDialog(null, "HDFS服务器连接失败!");
 							}else if(e instanceof SAXException){
-								logWriter.logTextArea("配置文件格式错误!");
+								log("配置文件格式错误!");
 								JOptionPane.showMessageDialog(null, "配置文件格式错误!");
 							}
 							e.printStackTrace();
@@ -104,11 +97,11 @@ public class UploadListener extends LogListener implements ActionListener{
 				}).start();
 			}else{
 				if(src ==null) { 
-					logWriter.logTextArea("本地数据源不为空!");
+					log("本地数据源不为空!");
 					JOptionPane.showMessageDialog(null, "本地数据源不为空!");
 				}
 				else if(hdfsName.equals("")) {
-					logWriter.logTextArea("HDFS服务器地址不为空!");
+					log("HDFS服务器地址不为空!");
 					JOptionPane.showMessageDialog(null, "HDFS服务器地址不为空!");
 				}
 			}
@@ -169,8 +162,16 @@ public class UploadListener extends LogListener implements ActionListener{
 	@Override
 	public void log(String info) {
 		// TODO Auto-generated method stub
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder builder = new StringBuilder(line);
-		line = builder.append(info).append("\r\n").toString();
+		line = builder.append(format.format(new java.util.Date())).append(":").append(info).append("\r\n").toString();
 		uploadView.logTextArea.setText(line);
+	}
+
+	@Override
+	public void progress(int i, int sum) {
+		// TODO Auto-generated method stub
+		int precent=(int)( ((float)i/(float)sum)*100); 
+		uploadView.progressBar.setValue(precent); 
 	}
 }

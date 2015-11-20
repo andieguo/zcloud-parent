@@ -18,7 +18,7 @@ public class UploadView extends JFrame {
 	public JTextField srcText = null;
 	public JTextField hdfsText = null;
 	private JButton srcselectBtn = null;
-	public  static JProgressBar progressBar = null;
+	public  JProgressBar progressBar = null;
 	public JTextArea logTextArea = null;
 	private JScrollPane scroll = null;
 	private JButton okBtn = null;
@@ -82,7 +82,7 @@ public class UploadView extends JFrame {
 	private void addComponent() {
 		this.add(contentPanel);
 		// 创建监听器
-		 UploadListener listener=new UploadListener(this);
+		 UploadListener listener = new UploadListener(this);
 		 //面板0
 		panel.add(new JLabel("本地数据源："));
 		panel.add(srcText);

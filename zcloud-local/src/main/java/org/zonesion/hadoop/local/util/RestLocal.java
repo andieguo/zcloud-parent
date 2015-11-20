@@ -23,11 +23,11 @@ import org.xml.sax.SAXException;
 import org.zonesion.hadoop.base.bean.Gate;
 import org.zonesion.hadoop.base.bean.HistoryURL;
 import org.zonesion.hadoop.base.bean.Sensor;
+import org.zonesion.hadoop.base.util.LogListener;
 import org.zonesion.hadoop.base.util.LogWriter;
 import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.base.util.Rest;
 import org.zonesion.hadoop.base.util.XmlService;
-import org.zonesion.hadoop.local.view.DownloadView;
 
 //数据存储与访问有2种方式：1）访问数据库；2）访问xml文件；
 public class RestLocal 
@@ -37,6 +37,7 @@ public class RestLocal
 	private LogWriter logger;
 	private String dstPath;
 	private String PATH = "/local_update.properties";//类路径配置文件：记录下载最后更新的时间点
+	private LogListener logListener;
 
 	public RestLocal(String dstPath) {
 		super();
@@ -84,7 +85,7 @@ public class RestLocal
 			}else{
 				OutputStream outputStream = new FileOutputStream(file);
 				OutputStreamWriter writer = new OutputStreamWriter(outputStream,"GBk");
-				logger.logTextArea("成功下载："+file);
+				if(logListener != null) logListener.log("成功下载："+file);
 				logger.log("成功下载："+file);
 				writer.write(result);//保存读取到的数据到文件
 				writer.close();
@@ -135,7 +136,7 @@ public class RestLocal
 					}
 			 }
 			 logger.log(historyURL.getChannal()+"获取历史数据结束！");
-			 logger.logTextArea(historyURL.getChannal()+"下载结束！");
+			 if(logListener != null) logListener.log(historyURL.getChannal()+"下载结束！");
 			 try {
 				exchanger.exchange(1);//与主线程交换信息
 			} catch (InterruptedException e) {
@@ -157,11 +158,11 @@ public class RestLocal
 		}
 		public void run() {
 			logger.log("FinnishJobRunable在等待所有的读历史数据线程执行完毕！");
-			logger.logTextArea("等待读取历史数据线程开始执行......");
+			if(logListener != null) logListener.log("等待读取历史数据线程开始执行......");
 			OutputStream out = null;
 			try {
 				this.downLatch.await();
-				logger.logTextArea("任务执行完毕！");
+				if(logListener != null) logListener.log("任务执行完毕！");
 				logger.log("FinnishJobRunable释放连接资源！");
 				//释放资源
 				 //connection.disconnect();//释放连接
@@ -209,7 +210,7 @@ public class RestLocal
 					//读取最新的更新记录
 					String starttime = properties.getProperty(gate.getUserid()+";"+sensor.getChannal());
 					HistoryURL historyURL = new HistoryURL(gate.getServerAddr(), gate.getUserid(),gate.getUserkey(), sensor.getChannal(),starttime);
-					QueryRunnable queryRunnable = new QueryRunnable(downLatch,exchanger, historyURL);//多线程执行--是否有公共资源
+					QueryRunnable queryRunnable = new QueryRunnable(downLatch,exchanger, historyURL);//多线程执行--解析部分属于公共资源，加上同步字段
 					 service.execute(queryRunnable);//为线程池添加任务
 				}
 			}
@@ -224,8 +225,7 @@ public class RestLocal
 						totalResult = totalResult + partialResult;
 						System.out.println(String.format("Progress: %s/%s",totalResult, sum));
 						//更新进度条
-						int precent=(int)( ((float)totalResult/(float)sum)*100); 
-						DownloadView.progressBar.setValue(precent);  
+						if(logListener != null) logListener.progress(totalResult, sum);
 					}
 			 }
 			 service.shutdown();
@@ -243,6 +243,9 @@ public class RestLocal
 		}
 	}
 
+	public void registerLogListener(LogListener logListener) {
+		this.logListener = logListener;
+	}
 	
 	public static void main(String[] args) {
 		RestLocal rest = new RestLocal("/home/hadoop/workspace_maven/HistorySqoop");

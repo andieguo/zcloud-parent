@@ -17,13 +17,17 @@
 	
 		function search(){
 				var gateid = $("#gateSelect").find("option:selected").val();
-				var sensorid = $("#sensorSelect").find("option:selected").val();
+				var sensorid = $("#sensorSelect").find("option:selected").attr("channal");
+				var unit = $("#sensorSelect").find("option:selected").attr("unit");
 				var typeid = $("#typeSelect").find("option:selected").val();
 				if(gateid == 0) {alert("请选择网关!");return;}
 				if(sensorid == 0) {alert("请选择通道!");return;}
-				sensorid = sensorid.replace(new RegExp(/:/g),'_');
+				sensorid = sensorid.replace(new RegExp(/:/g),'_');//获取channel
+				//获取unit
 				var url = 'rest/result/userid/'+gateid+'/channal/'+sensorid+'/type/'+typeid;
 				console.log("url:",url);
+				$("#container01").html("<img class='loading-img' style='margin:80px 324px;' src='images/Loading.gif' />");
+				$("#container02").html("<img class='loading-img' style='margin:80px 324px;' src='images/Loading.gif' />");
 			   $.ajax({
 					url : url,
 					type: "get",
@@ -32,7 +36,7 @@
 					success:function(data){//返回的msg是一个json对象
 						console.log('data：',data);
 						var result = analyze(data);
-						drawCurve(result[0],result[1]);
+						drawCurve(unit,result[0],result[1]);
 						drawColumn(result[0],result[2]);
 					},
 					error:function()
@@ -41,36 +45,12 @@
 					} 
 			});
 		}
-	   
-		function loadSensor(userid) {
-			if(userid == 0) {
-				var sensorSelect = $("#sensorSelect");
-				sensorSelect.empty(); //初始化否则会追加 
-				sensorSelect.append("<option value='0'>请选择...</option>");
-				return;
-			}
-			var url = "rest/sensor/userid/" + userid;//要么使用相对路径"rest/sensor/userid/"，要么使用绝对路径："/zcloud-web/rest/sensor/userid/"
-			$.ajax({//调用JQuery提供的Ajax方法 
-				type : "GET",
-				url : url,
-				dataType : "json",
-				success : function(data){//回调函数 
-					console.log('data：',data);
-					console.log('length：',data.sensor.length);
-					console.log("title：",data.sensor[0].title);
-					var sensorSelect = $("#sensorSelect");
-					sensorSelect.empty(); //初始化否则会追加 
-					for (var i = 0; i < data.sensor.length; i++) {
-						sensorSelect.append("<option value='"+data.sensor[i].channal+"'>"
-								+ data.sensor[i].title + "</option>");
-					}
-				},
-				error : function() {
-					alert("系统出现问题");
-				}
-			});
-		}
+
 		$(function(){
+			//$("#gateSelect").get(0).selectedIndex=1; 
+			//$("#gateSelect").change();//触发一次onchange事件
+			//$("#sensorSelect").get(0).selectedIndex=0; 
+			//search();//执行一次search
 			var getHeight =  $("#qy").height() + 30;
 	      console.log("getHeight",getHeight);
 	      var contentHeight = "height:" + getHeight + "px";

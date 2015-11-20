@@ -2,17 +2,15 @@ package org.zonesion.webapp.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.protocol.ClientProtocol;
 import org.apache.hadoop.hdfs.protocol.DatanodeInfo;
 import org.apache.hadoop.hdfs.protocol.FSConstants.DatanodeReportType;
@@ -35,13 +33,12 @@ public class NameNodeServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		Configuration conf = new Configuration();
-		InetSocketAddress nameNodeAddr = new InetSocketAddress("192.168.100.141", 9000);
-		ClientProtocol clientProtocl;
+		ClientProtocol clientProtocol;
 		List<DataNodeInfo> datanodes = new ArrayList<DataNodeInfo>();
+		ServletContext servletContext = getServletContext();
 		try {
-			clientProtocl = DFSClient.createNamenode(nameNodeAddr, conf);
-			DatanodeInfo[] datanodeInfoList = clientProtocl.getDatanodeReport(DatanodeReportType.ALL);
+			clientProtocol = (ClientProtocol) servletContext.getAttribute("clientProtocol");
+			DatanodeInfo[] datanodeInfoList = clientProtocol.getDatanodeReport(DatanodeReportType.ALL);
 			float capacity=0,nonuserd=0,dfsused=0;
 			for(DatanodeInfo info:datanodeInfoList){
 				capacity = capacity+info.getCapacity();

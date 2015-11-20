@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <gates>
 <gate>
-<serverAddr>t.zhiyun360.com</serverAddr>
+<serverAddr>zhiyun360.com</serverAddr>
 <userid>1155223953</userid>
 <userkey>Xrk6UicNrbo3KiX1tYDDaUq9HAMHBYhuE2Sb4NLKFKdNcLH5</userkey>
 <sensors>
 <sensor title="湿度传感器" unit="%">00:12:4B:00:02:CB:A8:52_A1</sensor>
 <sensor title="温度传感器" unit="℃">00:12:4B:00:02:CB:A8:52_A0</sensor>
 <sensor title="光敏传感器" unit="LF">00:12:4B:00:02:CB:A9:C7_A0</sensor>
+<sensor title="室内空气质量" unit="PPM">00:12:4B:00:02:63:3E:B5_A0</sensor>
 </sensors>
 </gate>
 <gate>
@@ -18,6 +19,7 @@
 <sensor title="温度传感器" unit="℃">00:12:4B:00:03:D4:41:57_A0</sensor>
 <sensor title="湿度传感器" unit="%">00:12:4B:00:03:D4:41:57_A1</sensor>
 <sensor title="光敏传感器" unit="LF">00:12:4B:00:05:52:7C:16_A0</sensor>
+<sensor title="二氧化碳" unit="PPM">00:12:4B:00:03:D4:42:A4_A0</sensor>
 </sensors>
 </gate>
 <gate>

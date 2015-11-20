@@ -22,7 +22,7 @@ public class DownloadView extends JFrame {
 	public JTextField dstText = null;
 	private JButton configselectBtn = null;
 	private JButton dstselectBtn = null;
-	public  static JProgressBar progressBar = null;
+	public  JProgressBar progressBar = null;
 	public JTextArea logTextArea = null;
 	private JScrollPane scroll = null;
 	private JButton okBtn = null;

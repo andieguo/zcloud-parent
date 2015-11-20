@@ -11,7 +11,6 @@ import javax.swing.JOptionPane;
 
 import org.xml.sax.SAXException;
 import org.zonesion.hadoop.base.util.LogListener;
-import org.zonesion.hadoop.base.util.LogWriter;
 import org.zonesion.hadoop.local.util.RestLocal;
 
 public class DownloadListener extends LogListener implements ActionListener {
@@ -20,18 +19,9 @@ public class DownloadListener extends LogListener implements ActionListener {
 	static double Length = 0;
 	static long startTime = 0;
 	String line = "";
-	LogWriter logWriter ;
 
-	public DownloadListener(DownloadView uploadView) {
-		this.downloadView = uploadView;
-		try {
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			logWriter = LogWriter.getLogWriter(File.separator+format.format(new java.util.Date())+".log");//日志文件存放在类路径log文件夹下
-			logWriter.registerLogListener(this);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public DownloadListener(DownloadView downloadView) {
+		this.downloadView = downloadView;
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -49,7 +39,7 @@ public class DownloadListener extends LogListener implements ActionListener {
 			downloadView.configText.setText("");
 			downloadView.dstText.setText("");
 			downloadView.logTextArea.setText("");
-			DownloadView.progressBar.setValue(0);
+			downloadView.progressBar.setValue(0);
 		} else if (e.getActionCommand().equals("OK")) {
 			startTime = System.currentTimeMillis();
 			if (configText != null && dstText!=null) {
@@ -62,19 +52,20 @@ public class DownloadListener extends LogListener implements ActionListener {
 								if(dstTextfile.isDirectory()){//校验存储文件夹
 									//执行下载
 									RestLocal rest = new RestLocal(dstText);
+									rest.registerLogListener(DownloadListener.this);
 									rest.executeJob(configText);
 								}else{
-									logWriter.logTextArea("存储地址必须为文件夹!");
+									log("存储地址必须为文件夹!");
 									JOptionPane.showMessageDialog(null, "存储地址必须为文件夹!");
 								}
 							}else{
-								logWriter.logTextArea("配置文件必须为文件!");
+								log("配置文件必须为文件!");
 								JOptionPane.showMessageDialog(null, "配置文件必须为文件!");
 							}
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							 if(e instanceof SAXException){
-									logWriter.logTextArea("配置文件格式错误!");
+									log("配置文件格式错误!");
 									JOptionPane.showMessageDialog(null, "配置文件格式错误!");
 								}
 							e.printStackTrace();
@@ -83,11 +74,11 @@ public class DownloadListener extends LogListener implements ActionListener {
 				}).start();
 			}else{
 				if(configText ==null) { 
-					logWriter.logTextArea("配置文件地址不为空!");
+					log("配置文件地址不为空!");
 					JOptionPane.showMessageDialog(null, "配置文件地址不为空!");
 				}
 				else if(dstText ==null) { 
-					logWriter.logTextArea("存储地址不为空!");
+					log("存储地址不为空!");
 					JOptionPane.showMessageDialog(null, "存储地址不为空!");
 				}
 			}
@@ -107,10 +98,17 @@ public class DownloadListener extends LogListener implements ActionListener {
 	@Override
 	public void log(String info) {
 		// TODO Auto-generated method stub
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder builder = new StringBuilder(line);
-		line = builder.append(info).append("\r\n").toString();
+		line = builder.append(format.format(new java.util.Date())).append(":").append(info).append("\r\n").toString();
 		downloadView.logTextArea.setText(line);
 	}
 
+	@Override
+	public void progress(int i, int sum) {
+		// TODO Auto-generated method stub
+		int precent=(int)( ((float)i/(float)sum)*100); 
+		downloadView.progressBar.setValue(precent); 
+	}
 	
 }

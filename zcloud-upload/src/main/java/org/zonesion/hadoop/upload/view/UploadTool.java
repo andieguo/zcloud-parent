@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -13,17 +12,13 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.Progressable;
-import org.zonesion.hadoop.base.util.LogWriter;
+import org.zonesion.hadoop.base.util.LogListener;
 
 public class UploadTool {
 	
-	private  double current = 0;
+	private  int current = 0;
 	
-	private LogWriter logWriter;
-	
-	public UploadTool(LogWriter logWriter){
-		this.logWriter= logWriter;
-	}
+	private LogListener logListener;
 	
 	/**
 	 * 拷贝文件夹
@@ -62,7 +57,7 @@ public class UploadTool {
 				System.out.println("src-file:"+f.getPath());
 				System.out.println("dst-file:"+dstfile);
 				copyFile(f.getPath(),dstfile, conf);
-				logWriter.logTextArea("成功上传:"+f.getPath());
+				if(logListener != null) logListener.log("成功上传:"+f.getPath());
 			}
 		}
 		return true;
@@ -91,21 +86,16 @@ public class UploadTool {
 			}
 		});
 		IOUtils.copyBytes(in, out, 4096, true);
-		int precent=(int)( (current/UploadListener.Length)*100); 
-		UploadView.progressBar.setValue(precent);  
+		if(logListener != null) logListener.progress(current, UploadListener.Length);
 		return true;
 	}
 	
+	public void registerLogListener(LogListener logListener) {
+		this.logListener = logListener;
+	}
+	
 	public static void main(String[] args) throws Exception {
-		UploadTool uploadTool = null ;
-		try {
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			LogWriter logWriter = LogWriter.getLogWriter(format.format(new java.util.Date())+".log");
-			uploadTool = new UploadTool(logWriter);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		UploadTool uploadTool = new UploadTool();
 		if (args.length < 2) {
 			System.out.println("Please input two number");
 			System.exit(2);

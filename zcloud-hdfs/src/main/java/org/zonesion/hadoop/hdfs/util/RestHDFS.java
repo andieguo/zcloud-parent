@@ -24,7 +24,7 @@ import org.zonesion.hadoop.base.bean.Gate;
 import org.zonesion.hadoop.base.bean.HistoryURL;
 import org.zonesion.hadoop.base.bean.Sensor;
 import org.zonesion.hadoop.hdfs.util.HDFSUtil;
-import org.zonesion.hadoop.hdfs.view.DownloadView;
+import org.zonesion.hadoop.base.util.LogListener;
 import org.zonesion.hadoop.base.util.LogWriter;
 import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.base.util.Rest;
@@ -36,6 +36,7 @@ public class RestHDFS
 	private HttpURLConnection connection = null;
 	private Properties properties;
 	private LogWriter logger;
+	private LogListener logListener;
 	private HDFSUtil hdfsUtil;
 	private String PATH = "/hdfs_update.properties";//类路径配置文件：记录下载最后更新的时间点
 
@@ -85,7 +86,7 @@ public class RestHDFS
 				OutputStreamWriter writer = new OutputStreamWriter(outputStream,"GBk");
 				writer.write(result);//保存读取到的数据到文件
 				writer.close();
-				logger.logTextArea("成功上传："+temp.getName());
+				if(logListener != null) logListener.log("成功上传："+temp.getName());
 				logger.log("成功上传："+temp.getName()+"到"+strChannal);
 				hdfsUtil.put(temp.getPath(), strChannal);//上传到HDFS上
 			}
@@ -134,7 +135,7 @@ public class RestHDFS
 						break;//当网络不可达时，报异常跳出循环
 					}
 			 }
-			 logger.logTextArea(historyURL.getChannal()+"上传结束！");
+			 if(logListener != null) logListener.log(historyURL.getChannal()+"上传结束！");
 			 logger.log(historyURL.getChannal()+"获取历史数据结束！");
 			 try {
 					exchanger.exchange(1);//与主线程交换信息
@@ -156,12 +157,12 @@ public class RestHDFS
 			this.gateList = gateList;
 		}
 		public void run() {
-			logger.logTextArea("等待读取历史数据线程开始执行......");
+			if(logListener != null) logListener.log("等待读取历史数据线程开始执行......");
 			logger.log("FinnishJobRunable在等待所有的读历史数据线程执行完毕！");
 			OutputStream out = null;
 			try {
 				this.downLatch.await();
-				logger.logTextArea("任务执行完毕！");
+				if(logListener != null) logListener.log("任务执行完毕！");
 				logger.log("FinnishJobRunable释放连接资源！");
 //				connection.disconnect();
 				hdfsUtil.destroy();
@@ -219,11 +220,14 @@ public class RestHDFS
 						totalResult = totalResult + partialResult;
 						System.out.println(String.format("Progress: %s/%s",totalResult, sum));
 						//更新进度条
-						int precent=(int)( ((float)totalResult/(float)sum)*100); 
-						DownloadView.progressBar.setValue(precent);  
+						logListener.progress(totalResult, sum);
 					}
 			 }
 			 service.shutdown();
+	}
+	
+	public void registerLogListener(LogListener logListener) {
+		this.logListener = logListener;
 	}
 
 	public static void main(String[] args) {

@@ -19,7 +19,7 @@ public class TimerManager {
 		/*** 定制每日2:00执行方法 ***/
 
 		calendar.set(Calendar.HOUR_OF_DAY, 10);
-		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.MINUTE, 45);
 		calendar.set(Calendar.SECOND, 0);
 
 		Date date = calendar.getTime(); // 第一次执行定时任务的时间
