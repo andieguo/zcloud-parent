@@ -79,7 +79,7 @@ public class DownloadView extends JFrame {
 		progressBar.setPreferredSize(new Dimension(290, 20));
 //		progressBar.setBackground(Color.white);
 //		progressBar.setForeground(Color.green);
-		logTextArea = new JTextArea(10,38); 
+		logTextArea = new JTextArea(12,35); 
 		logTextArea.setEditable(false);
 //		logTextArea.setLineWrap(true);
 		 scroll = new JScrollPane(logTextArea); 
