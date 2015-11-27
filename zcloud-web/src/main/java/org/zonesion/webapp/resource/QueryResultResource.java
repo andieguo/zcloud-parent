@@ -60,7 +60,6 @@ public class QueryResultResource {
 	@Path("/userid/{userid}/channal/{channal}/type/{type}")
 	@Produces({MediaType.APPLICATION_JSON,MediaType.APPLICATION_XML})
 	public List<QueryResult> getQueryResult(@PathParam("userid") String userid,@PathParam("channal") String channal,@PathParam("type") String type){
-		System.out.println("执行了服务器方法");
 		return service.findByType(userid, channal, type);
 	}
 	

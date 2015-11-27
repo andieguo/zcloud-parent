@@ -11,7 +11,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.protocol.ClientProtocol;
 import org.apache.hadoop.mapred.JobClient;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.zonesion.hadoop.hbase.service.HConnectionService;
+
 /**
  * 定时任务监听器，当web容器启动时执行定时任务
  * @author hadoop
@@ -20,7 +23,10 @@ import org.zonesion.hadoop.hbase.service.HConnectionService;
 public class HistoryRestTaskListener implements ServletContextListener {
 	
 	private HConnectionService hConnectionService;
-
+	private Configuration conf;
+	private JobClient jobClient;
+	private ClientProtocol clientProtocol;
+	private Logger logger;
 	/**
 	 * 当Servlet 容器终止Web 应用时调用该方法。
 	 */  
@@ -28,6 +34,7 @@ public class HistoryRestTaskListener implements ServletContextListener {
 		// TODO Auto-generated method stub
 		System.out.println("==========================关闭容器=========================");
 		hConnectionService.disconnect();
+		
 	}
 
 	/**
@@ -36,24 +43,41 @@ public class HistoryRestTaskListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent servletContextEvent) {
 		// TODO Auto-generated method stub
 		System.out.println("==========================启动容器=========================");
-		hConnectionService = HConnectionService.getInstance("zcloud");//单例模式
+		//从类路径下加载配置文件
+		PropertyConfigurator.configure(this.getClass().getClassLoader().getResourceAsStream("log4j/log4j.properties"));
+		logger =  Logger.getLogger(HistoryRestTaskListener.class);
+		hConnectionService = HConnectionService.getInstance("zcloud");//单例模式,加载zcloud-hbase模块的配置文件
 		hConnectionService.connect();//执行HBase连接，为HBase REST服务提供访问HBase连接。
 		ServletContext servletContext = servletContextEvent.getServletContext();
-		Configuration conf = new Configuration();
-		JobClient jobClient;
-		ClientProtocol clientProtocol;
+		conf = new Configuration();
+		String fsDefaultName = servletContext.getInitParameter("fs.default.name");//hdfs://192.168.100.141:9000
+		String mrJobTracker = servletContext.getInitParameter("mapred.job.tracker");//http://192.168.100.141:9001
+		logger.info("fs.default.name"+fsDefaultName);
+		logger.info("mapred.job.tracker"+mrJobTracker);
 		try {
 			//获取jobClient
-			jobClient = new JobClient(new InetSocketAddress("192.168.100.141",9001), conf);
+			String jobPort = mrJobTracker.substring(mrJobTracker.lastIndexOf(":")+1, mrJobTracker.length());
+			String jobHostName = mrJobTracker.substring(mrJobTracker.lastIndexOf("/")+1, mrJobTracker.lastIndexOf(":"));
+			jobClient = new JobClient(new InetSocketAddress(jobHostName,Integer.valueOf(jobPort)), conf);
 			servletContext.setAttribute("jobClient", jobClient);
 			//获取namenode
-			clientProtocol = DFSClient.createNamenode(new InetSocketAddress("192.168.100.141", 9000), conf);
+			String fsPort = fsDefaultName.substring(fsDefaultName.lastIndexOf(":")+1, fsDefaultName.length());
+			String fsHostName = fsDefaultName.substring(fsDefaultName.lastIndexOf("/")+1, fsDefaultName.lastIndexOf(":"));
+			clientProtocol = DFSClient.createNamenode(new InetSocketAddress(fsHostName,Integer.valueOf(fsPort)), conf);
 			servletContext.setAttribute("clientProtocol", clientProtocol);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		new TimerManager();//启动定时任务(访问智云历史数据，并上传到HDFS)
+	}
+	
+	public static void main(String[] args) {
+		String fsDefaultName = "hdfs://192.168.100.141:9000";
+		String fsPort = fsDefaultName.substring(fsDefaultName.lastIndexOf(":")+1, fsDefaultName.length());
+		String fsHostName = fsDefaultName.substring(fsDefaultName.lastIndexOf("/")+1, fsDefaultName.lastIndexOf(":"));
+		System.out.println(fsPort);
+		System.out.println(fsHostName);
 	}
 
 }
