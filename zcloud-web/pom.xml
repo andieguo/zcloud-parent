@@ -63,6 +63,7 @@
 				<directory>src/main/resources</directory>
 				<includes>
 					<include>**.xml</include>
+					<include>**.properties</include>
 				</includes>
 				<filtering>true</filtering>
 			</resource>
@@ -70,6 +71,7 @@
 				<directory>src/main/resources</directory>
 				<excludes>
 					<exclude>**.xml</exclude>
+					<exclude>**.properties</exclude>
 				</excludes>
 			</resource>
 		</resources>

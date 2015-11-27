@@ -19,7 +19,7 @@ public class PropertiesUtilTest extends TestCase {
 		System.out.println(ClassLoader.getSystemResource("config.properties").getPath());
 		InputStream input = this.getClass().getClassLoader().getResourceAsStream("config.properties");
 		Properties pro = PropertiesUtil.loadFromInputStream(input);
-		System.out.println(pro.get("name"));
+		System.out.println(pro.get("zcloud.download.local.home"));
 	}
 	
 	public void testGetProperties1() {
