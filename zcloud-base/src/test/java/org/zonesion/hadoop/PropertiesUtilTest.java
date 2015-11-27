@@ -47,4 +47,9 @@ public class PropertiesUtilTest extends TestCase {
 			e.printStackTrace();
 		}
 	}
+	
+	public void testIntegr(){
+		System.out.println(Integer.valueOf("2000")==2000);
+		System.out.println(Integer.valueOf("2000").equals(2000));
+	}
 }

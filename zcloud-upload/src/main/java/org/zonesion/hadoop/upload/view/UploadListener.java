@@ -2,6 +2,8 @@ package org.zonesion.hadoop.upload.view;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -17,17 +19,15 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.ipc.RemoteException;
 import org.xml.sax.SAXException;
 import org.zonesion.hadoop.base.util.LogListener;
-import org.zonesion.hadoop.base.util.LogWriter;
 
-public class UploadListener extends LogListener implements ActionListener{
-	UploadView uploadView = null;
-	String src = null;
-	static int Length = 0;
-	static long startTime = 0;
-	LogWriter logWriter;
-	String line = "";
-	UploadTool uploadTool;
-
+public class UploadListener extends LogListener implements ActionListener,WindowListener{
+	private UploadView uploadView = null;
+	private String src = null;
+	public static int Length = 0;
+	private String line = "";
+	private UploadTool uploadTool;
+	private FileSystem fs;
+	
 	public UploadListener(UploadView uploadView) {
 		this.uploadView = uploadView;
 	}
@@ -36,7 +36,7 @@ public class UploadListener extends LogListener implements ActionListener{
 
 		if (e.getActionCommand().equals("srcSelect")) {
 			src = getSelectFileName(JFileChooser.FILES_AND_DIRECTORIES);
-			 System.out.println(src);
+			System.out.println(src);
 			uploadView.srcText.setText(src);
 		} else if (e.getActionCommand().equals("reset")) {
 			line = "";src = null;
@@ -44,11 +44,12 @@ public class UploadListener extends LogListener implements ActionListener{
 			uploadView.logTextArea.setText("");
 			uploadView.progressBar.setValue(0);
 		} else if (e.getActionCommand().equals("OK")) {
-			startTime = System.currentTimeMillis();
 			final String hdfsName = uploadView.hdfsText.getText();
 			if (src != null && !hdfsName.equals("")) {
 				// 获得拷贝文件或文件夹的总个数
+				log("正在获取上传文件的总个数........");
 				Length = getFileNumber(src);
+				log("需要上传文件的总个数："+Length);
 				new Thread(new Runnable() {
 					public void run() {
 						try {
@@ -58,16 +59,16 @@ public class UploadListener extends LogListener implements ActionListener{
 									log("正在连接HDFS服务器........");
 									Configuration conf = new Configuration();
 									conf.set("fs.default.name",hdfsName);
-									FileSystem fs = FileSystem.get(conf);
+									fs = FileSystem.get(conf);
 									if(fs != null){//校验服务器是否能连接上
 										log("HDFS服务器连接成功！");
 										File srcFile = new File(src);
 										uploadTool = new UploadTool();
 										uploadTool.registerLogListener(UploadListener.this);
 										if (srcFile.isDirectory()) {
-											uploadTool.copyDirectory(src,"/user/hadoop/zcloud", conf);
+											uploadTool.copyDirectory(src,hdfsName+"/user/hadoop/zcloud",fs);
 										} else {
-											uploadTool.copyFile(src, "/user/hadoop/zcloud",conf);
+											uploadTool.copyFile(src,hdfsName+"/user/hadoop/zcloud",fs);
 										}
 										log("上传任务完成！");
 									}else{
@@ -173,5 +174,63 @@ public class UploadListener extends LogListener implements ActionListener{
 		// TODO Auto-generated method stub
 		int precent=(int)( ((float)i/(float)sum)*100); 
 		uploadView.progressBar.setValue(precent); 
+	}
+
+	@Override
+	public void windowActivated(WindowEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosed(WindowEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosing(WindowEvent event) {
+		// TODO Auto-generated method stub
+		System.out.println("触发了关闭事件");
+		Object[] options = { "确定", "取消" }; 
+		int result = JOptionPane.showOptionDialog(null, "确定退出本窗口？", "提示", 
+		JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, 
+		null, options, options[0]); 
+		if(result == 0){
+			System.out.println("执行关闭");
+			uploadView.dispose();//关闭窗体
+			if(fs!=null){
+				try {
+					fs.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent event) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent event) {
+		// TODO Auto-generated method stub
+		
 	}
 }

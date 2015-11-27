@@ -41,7 +41,7 @@ public class UploadView extends JFrame {
 		init();
 		addComponent();
 		this.setVisible(true);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	}
 	
 	private void init() {
@@ -66,7 +66,7 @@ public class UploadView extends JFrame {
 		progressBar.setPreferredSize(new Dimension(290, 20));
 //		progressBar.setBackground(Color.white);
 //		progressBar.setForeground(Color.green);
-		logTextArea = new JTextArea(10,38); 
+		logTextArea = new JTextArea(12,35); 
 		logTextArea.setEditable(false);
 //		logTextArea.setLineWrap(true);
 		 scroll = new JScrollPane(logTextArea); 
@@ -83,6 +83,7 @@ public class UploadView extends JFrame {
 		this.add(contentPanel);
 		// 创建监听器
 		 UploadListener listener = new UploadListener(this);
+		this.addWindowListener(listener);
 		 //面板0
 		panel.add(new JLabel("本地数据源："));
 		panel.add(srcText);

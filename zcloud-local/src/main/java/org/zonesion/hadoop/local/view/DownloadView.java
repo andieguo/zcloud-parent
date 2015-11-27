@@ -8,6 +8,7 @@ import java.awt.event.WindowEvent;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
@@ -15,7 +16,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import org.zonesion.hadoop.base.util.RestListener;
-
 
 public class DownloadView extends JFrame {
 
@@ -49,14 +49,21 @@ public class DownloadView extends JFrame {
 		init();
 		addComponent();
 		this.setVisible(true);
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 	    this.addWindowListener(new WindowAdapter()  
         {  
             @Override
 			public void windowClosing(WindowEvent e) {
 				// TODO Auto-generated method stub
-    			System.out.println("触发windowClosing事件");  
-    			if(restListener!=null)restListener.close();
+    			System.out.println("触发windowClosing事件");
+    			Object[] options = { "确定", "取消" }; 
+    			int result = JOptionPane.showOptionDialog(null, "确定退出本窗口？", "提示", 
+    			JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, 
+    			null, options, options[0]); 
+    			if(result == 0){
+    				DownloadView.this.dispose();//关闭窗体
+    				if(restListener!=null)restListener.close();
+    			}
 			}
         });  
 	}
