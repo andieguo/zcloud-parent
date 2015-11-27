@@ -96,7 +96,7 @@
         		tab.not("tr:first").empty();
 	        	for (var i=0; i<data.length; i++) {
 	     		   var mapProgress = (data[i].mapProgress).toFixed(2)*100;
-	     		   var reduceProgress = (data[i].mapProgress).toFixed(2)*100;
+	     		   var reduceProgress = (data[i].reduceProgress).toFixed(2)*100;
 	     		   console.log("mapProgress",mapProgress);
 		            var tr1 = "<tr>"; 
 		            tr1 += "<td>"+data[i].jobId+"</td>";

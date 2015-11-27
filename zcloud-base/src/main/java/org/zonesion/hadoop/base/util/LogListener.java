@@ -1,5 +1,6 @@
 package org.zonesion.hadoop.base.util;
 
+//Util类方法回调View视图类方法
 public abstract class LogListener {
 
 	/**

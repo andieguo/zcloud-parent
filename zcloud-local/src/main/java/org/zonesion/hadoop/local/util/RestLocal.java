@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -17,36 +16,45 @@ import java.util.concurrent.Exchanger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.xml.sax.SAXException;
 import org.zonesion.hadoop.base.bean.Gate;
 import org.zonesion.hadoop.base.bean.HistoryURL;
 import org.zonesion.hadoop.base.bean.Sensor;
+import org.zonesion.hadoop.base.util.Constants;
 import org.zonesion.hadoop.base.util.LogListener;
-import org.zonesion.hadoop.base.util.LogWriter;
 import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.base.util.Rest;
+import org.zonesion.hadoop.base.util.RestListener;
 import org.zonesion.hadoop.base.util.XmlService;
 
 //数据存储与访问有2种方式：1）访问数据库；2）访问xml文件；
-public class RestLocal 
+public class RestLocal extends RestListener
 {
 	private HttpURLConnection connection;
 	private Properties properties;
-	private LogWriter logger;
+	private Logger logger;
 	private String dstPath;
-	private String PATH = "/local_update.properties";//类路径配置文件：记录下载最后更新的时间点
 	private LogListener logListener;
-
+	
 	public RestLocal(String dstPath) {
 		super();
 		this.dstPath = dstPath;
-		InputStream input = this.getClass().getResourceAsStream(PATH);//从类路径下加载
-		properties = PropertiesUtil.loadFromInputStream(input);
 		try {
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			logger = LogWriter.getLogWriter(format.format(new java.util.Date())+".log");//日志文件存放在类路径log文件夹下
+			//从类路径下加载配置文件
+			PropertyConfigurator.configure(this.getClass().getClassLoader().getResourceAsStream("log4j/log4j.properties"));
+			logger =  Logger.getLogger(RestLocal.class);
+			//在家目录生成临时文件
+			File file = new File(Constants.MKDIRPATH);
+			if(!file.exists()) file.mkdirs();
+			file = new File(Constants.LOCAL_PATH);
+			if(!file.exists()) file.createNewFile();
+			logger.info(Constants.LOCAL_PATH);
+			InputStream input = new FileInputStream(file);
+			properties = PropertiesUtil.loadFromInputStream(input);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -58,11 +66,11 @@ public class RestLocal
 		String result = Rest.doRest(connection,historyURL);
 		JSONObject resultObj = new JSONObject(result);
 		JSONArray  datapoints = resultObj.getJSONArray("datapoints");
-		int size = datapoints.length();
-		if(size >= 1){
+		int serverSize = datapoints.length();
+		if(serverSize >= 1){
 			String startAt = datapoints.getJSONObject(0).getString("at");//并读取第一个时间点
-			String endAt = datapoints.getJSONObject(size-1).getString("at");//并读取最后一个时间点
-			logger.log("startAt:"+startAt+";"+"endAt:"+endAt+";"+"size:"+size);
+			String endAt = datapoints.getJSONObject(serverSize-1).getString("at");//并读取最后一个时间点
+			logger.info("startAt:"+startAt+";"+"endAt:"+endAt+";"+"size:"+serverSize);
 			//本地创建文件夹zcloud
 			File mkdirZcloud = new File(dstPath+File.separator+"zcloud");
 			if(!mkdirZcloud.exists()){
@@ -80,21 +88,26 @@ public class RestLocal
 			}
 			//本地创建文件zcloud/userid/channal/file
 			File file = new File(mkdirChannal.getPath()+File.separator+startAt.replace(":", "-"));//文件名以startAt命令
-			if(file.exists() && size == 2000){//如果文件存在，且数据为2000个
-				logger.log("完整文件已经保存");
+			String localSize = properties.getProperty(historyURL.getId()+";"+historyURL.getChannal()+";"+startAt, "2000");
+			//如果本地文件存在，且服务器端的数据为2000个，且本地分片的大小为2000个
+			if(file.exists() && serverSize == 2000 && Integer.valueOf(localSize).equals(2000)){
+				logger.info("完整文件已经保存");
 			}else{
 				OutputStream outputStream = new FileOutputStream(file);
 				OutputStreamWriter writer = new OutputStreamWriter(outputStream,"GBk");
 				if(logListener != null) logListener.log("成功下载："+file);
-				logger.log("成功下载："+file);
+				logger.info("成功下载："+file);
 				writer.write(result);//保存读取到的数据到文件
 				writer.close();
 			}
-			if(size == 2000){//判断其为完整的文件的条件
-				return endAt;
-			}else{//最后一片段文件
-				//记录每一个分片的开始时间点,用于指定开始时间
+			if(serverSize == 2000){//判断其为完整的文件的条件
 				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
+				return endAt;
+			}else{//最后一个片段文件
+				//记录最后一个分片的开始时间点,用于指定开始时间
+				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
+				//记录最后一个分片的本地文件大小
+				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal()+";"+startAt, String.valueOf(serverSize));
 				return "";
 			}
 		}
@@ -135,12 +148,13 @@ public class RestLocal
 						break;//当网络不可达时，报异常跳出循环
 					}
 			 }
-			 logger.log(historyURL.getChannal()+"获取历史数据结束！");
+			 logger.info(historyURL.getChannal()+"获取历史数据结束！");
 			 if(logListener != null) logListener.log(historyURL.getChannal()+"下载结束！");
 			 try {
 				exchanger.exchange(1);//与主线程交换信息
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+				logger.error(e);
 			}   
 			 this.downLatch.countDown();//计数减少1
 		}
@@ -157,34 +171,20 @@ public class RestLocal
 			this.gateList = gateList;
 		}
 		public void run() {
-			logger.log("FinnishJobRunable在等待所有的读历史数据线程执行完毕！");
+			logger.info("FinnishJobRunable在等待所有的读历史数据线程执行完毕！");
 			if(logListener != null) logListener.log("等待读取历史数据线程开始执行......");
-			OutputStream out = null;
 			try {
 				this.downLatch.await();
 				if(logListener != null) logListener.log("任务执行完毕！");
-				logger.log("FinnishJobRunable释放连接资源！");
+				logger.info("FinnishJobRunable释放连接资源！");
 				//释放资源
-				 //connection.disconnect();//释放连接
-				String path = this.getClass().getResource(PATH).getPath();
-				out = new FileOutputStream(new File(path));
-				properties.store(out, "update");
-				logger.close();
+				//connection.disconnect();//释放连接
+				close();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally{
-				if(out !=null)
-					try {
-						out.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+				logger.error(e);
 			}
+			
 		}
 	}
 	/**
@@ -231,15 +231,19 @@ public class RestLocal
 			 service.shutdown();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+			logger.error(e);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e);
 		} catch (SAXException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 
@@ -250,5 +254,31 @@ public class RestLocal
 	public static void main(String[] args) {
 		RestLocal rest = new RestLocal("/home/hadoop/workspace_maven/HistorySqoop");
 		rest.executeJob("/home/hadoop/workspace_maven/HistorySqoop/sensors.xml");
-	}	
+	}
+
+	@Override
+	public void close() {
+		// TODO Auto-generated method stub
+		OutputStream out = null;
+		try{
+			//String path = this.getClass().getResource(PATH).getPath();
+			out = new FileOutputStream(new File(Constants.LOCAL_PATH));
+			properties.store(out, "update");
+		}catch (FileNotFoundException e) {
+			e.printStackTrace();
+			logger.error(e);
+		} catch (IOException e) {
+			e.printStackTrace();
+			logger.error(e);
+		} finally{
+			if(out !=null)
+				try {
+					out.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					logger.error(e);
+				}
+		}
+	}
 }

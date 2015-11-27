@@ -52,6 +52,7 @@ public class DownloadListener extends LogListener implements ActionListener {
 								if(dstTextfile.isDirectory()){//校验存储文件夹
 									//执行下载
 									RestLocal rest = new RestLocal(dstText);
+									downloadView.registerRestListener(rest);
 									rest.registerLogListener(DownloadListener.this);
 									rest.executeJob(configText);
 								}else{

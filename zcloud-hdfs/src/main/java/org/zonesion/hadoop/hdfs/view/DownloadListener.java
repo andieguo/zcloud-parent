@@ -61,6 +61,7 @@ public class DownloadListener extends LogListener implements ActionListener {
 									fs.close();
 									log("HDFS服务器连接成功!");
 									RestHDFS rest = new RestHDFS(hdfsName);
+									downloadView.registerRestListener(rest);
 									rest.registerLogListener(DownloadListener.this);
 									rest.executeJob(src);
 								}else{

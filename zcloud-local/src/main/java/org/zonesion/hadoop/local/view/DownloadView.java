@@ -14,6 +14,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import org.zonesion.hadoop.base.util.RestListener;
+
 
 public class DownloadView extends JFrame {
 
@@ -33,14 +35,15 @@ public class DownloadView extends JFrame {
 	private JPanel panel_2 = null;
 	private JPanel panel_3 = null;
 	private JPanel panel_4 = null;
-	private DownloadListener listener =null;
+	private DownloadListener listener = null;
+	private RestListener restListener = null;
 	
 	public static void main(String[] args) {
 		new DownloadView();
 	}
 	
 	public DownloadView() {
-		this.setBounds(300, 200,425, 400);
+		this.setBounds(300, 200,425, 430);
 		this.setTitle("Download To Local");
 		this.setResizable(false);
 		init();
@@ -53,6 +56,7 @@ public class DownloadView extends JFrame {
 			public void windowClosing(WindowEvent e) {
 				// TODO Auto-generated method stub
     			System.out.println("触发windowClosing事件");  
+    			if(restListener!=null)restListener.close();
 			}
         });  
 	}
@@ -128,5 +132,9 @@ public class DownloadView extends JFrame {
 		contentPanel.add(panel_2);
 		contentPanel.add(panel_3);
 		contentPanel.add(panel_4);
+	}
+	
+	public void registerRestListener(RestListener restListener){
+		this.restListener = restListener;
 	}
 }

@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -17,6 +16,8 @@ import java.util.concurrent.Exchanger;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.xml.sax.SAXException;
@@ -24,32 +25,40 @@ import org.zonesion.hadoop.base.bean.Gate;
 import org.zonesion.hadoop.base.bean.HistoryURL;
 import org.zonesion.hadoop.base.bean.Sensor;
 import org.zonesion.hadoop.hdfs.util.HDFSUtil;
+import org.zonesion.hadoop.base.util.Constants;
 import org.zonesion.hadoop.base.util.LogListener;
-import org.zonesion.hadoop.base.util.LogWriter;
 import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.base.util.Rest;
+import org.zonesion.hadoop.base.util.RestListener;
 import org.zonesion.hadoop.base.util.XmlService;
 
 //数据存储与访问有2种方式：1）访问数据库；2）访问xml文件；
-public class RestHDFS 
+public class RestHDFS extends RestListener
 {
 	private HttpURLConnection connection = null;
 	private Properties properties;
-	private LogWriter logger;
+	private Logger logger;
 	private LogListener logListener;
 	private HDFSUtil hdfsUtil;
-	private String PATH = "/hdfs_update.properties";//类路径配置文件：记录下载最后更新的时间点
-
+	
 	public RestHDFS(String hdfsName) {
 		super();
-		InputStream input = this.getClass().getResourceAsStream(PATH);//从类路径下加载
-		properties = PropertiesUtil.loadFromInputStream(input);
-		hdfsUtil = new HDFSUtil(hdfsName);
 		try {
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			logger = LogWriter.getLogWriter(File.separator+format.format(new java.util.Date())+".log");//保存到类路径下
+			hdfsUtil = new HDFSUtil(hdfsName);
+			//从类路径下加载配置文件
+			PropertyConfigurator.configure(this.getClass().getClassLoader().getResourceAsStream("log4j/log4j.properties"));
+			logger =  Logger.getLogger(RestHDFS.class);
+			//在家目录生成临时文件
+			File file = new File(Constants.MKDIRPATH);
+			if(!file.exists()) file.mkdirs();
+			file = new File(Constants.HDFS_PATH);
+			if(!file.exists()) file.createNewFile();
+			logger.info(Constants.HDFS_PATH);
+			InputStream input = new FileInputStream(file);
+			properties = PropertiesUtil.loadFromInputStream(input);
 		} catch (Exception e) {
 			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 
@@ -59,11 +68,11 @@ public class RestHDFS
 		String result = Rest.doRest(connection,historyURL);
 		JSONObject resultObj = new JSONObject(result);
 		JSONArray  datapoints = resultObj.getJSONArray("datapoints");
-		int size = datapoints.length();
-		if(size >= 1){
+		int serverSize = datapoints.length();
+		if(serverSize >= 1){
 			String startAt = datapoints.getJSONObject(0).getString("at");//并读取第一个时间点
-			String endAt = datapoints.getJSONObject(size-1).getString("at");//并读取最后一个时间点
-			logger.log("startAt:"+startAt+";"+"endAt:"+endAt+";"+"size:"+size);
+			String endAt = datapoints.getJSONObject(serverSize-1).getString("at");//并读取最后一个时间点
+			logger.info("startAt:"+startAt+";"+"endAt:"+endAt+";"+"size:"+serverSize);
 			//创建文件夹
 			if(!hdfsUtil.check("zcloud")){//HDFS创建zcloud
 				hdfsUtil.mkdir("zcloud");//HDFS上的路径：/user/hadoop/zcloud/
@@ -78,8 +87,10 @@ public class RestHDFS
 			}
 			//文件名以startAt命令
 			File file = new File(strChannal+startAt.replace(":", "-"));///user/hadoop/zcloud/1155223593/channalid/startat.txt
-			if(hdfsUtil.check(file.getPath()) && size == 2000){//如果文件在HDFS上存在，且数据为2000个
-				logger.log("完整文件已经保存到HDFS");
+			String localSize = properties.getProperty(historyURL.getId()+";"+historyURL.getChannal()+";"+startAt, "2000");
+			//如果文件在HDFS上存在，且服务器段的分片数据为2000个，且本地分片的大小为2000个
+			if(hdfsUtil.check(file.getPath()) && serverSize == 2000 && Integer.valueOf(localSize).equals(2000)){
+				logger.info("完整文件已经保存到HDFS");
 			}else{
 				File temp = new File(startAt.replace(":", "-"));
 				OutputStream outputStream = new FileOutputStream(temp);
@@ -87,14 +98,17 @@ public class RestHDFS
 				writer.write(result);//保存读取到的数据到文件
 				writer.close();
 				if(logListener != null) logListener.log("成功上传："+temp.getName());
-				logger.log("成功上传："+temp.getName()+"到"+strChannal);
+				logger.info("成功上传："+temp.getName()+"到"+strChannal);
 				hdfsUtil.put(temp.getPath(), strChannal);//上传到HDFS上
 			}
-			if(size == 2000){//判断其为完整的文件的条件
+			if(serverSize == 2000){//判断其为完整的文件的条件
+				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
 				return endAt;
 			}else{//最后一片段文件
-				//记录每一个分片的开始时间点,用于指定开始时间
+				//记录最后一个分片的开始时间点,用于指定开始时间
 				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
+				//记录最后一个分片的本地文件大小
+				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal()+";"+startAt, String.valueOf(serverSize));
 				return "";
 			}
 		}
@@ -136,11 +150,12 @@ public class RestHDFS
 					}
 			 }
 			 if(logListener != null) logListener.log(historyURL.getChannal()+"上传结束！");
-			 logger.log(historyURL.getChannal()+"获取历史数据结束！");
+			 logger.info(historyURL.getChannal()+"获取历史数据结束！");
 			 try {
 					exchanger.exchange(1);//与主线程交换信息
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					logger.error(e);
 				}   
 			 this.downLatch.countDown();//计数减少1
 		}
@@ -158,32 +173,16 @@ public class RestHDFS
 		}
 		public void run() {
 			if(logListener != null) logListener.log("等待读取历史数据线程开始执行......");
-			logger.log("FinnishJobRunable在等待所有的读历史数据线程执行完毕！");
-			OutputStream out = null;
+			logger.info("FinnishJobRunable在等待所有的读历史数据线程执行完毕！");
 			try {
 				this.downLatch.await();
 				if(logListener != null) logListener.log("任务执行完毕！");
-				logger.log("FinnishJobRunable释放连接资源！");
+				logger.info("FinnishJobRunable释放连接资源！");
 //				connection.disconnect();
-				hdfsUtil.destroy();
-				String path = this.getClass().getResource(PATH).getPath();
-				out = new FileOutputStream(new File(path));
-				properties.store(out, "update");
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally{
-				if(out !=null)
-					try {
-						out.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-			}
+				logger.error(e);
+			} 
 		}
 	}
 		
@@ -243,6 +242,33 @@ public class RestHDFS
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void close() {
+		// TODO Auto-generated method stub
+		OutputStream out = null;
+		try{
+			hdfsUtil.destroy();
+			//String path = this.getClass().getResource(PATH).getPath();
+			out = new FileOutputStream(new File(Constants.HDFS_PATH));
+			properties.store(out, "update");
+		}catch (FileNotFoundException e) {
+			e.printStackTrace();
+			logger.error(e);
+		} catch (IOException e) {
+			e.printStackTrace();
+			logger.error(e);
+		} finally{
+			if(out !=null)
+				try {
+					out.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					logger.error(e);
+				}
 		}
 	}	
 }
