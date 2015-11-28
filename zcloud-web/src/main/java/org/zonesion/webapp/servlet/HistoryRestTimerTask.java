@@ -27,7 +27,7 @@ public class HistoryRestTimerTask  extends TimerTask{
 		propertis = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/config.properties"));
 		logger.info("==========================开始执行定时任务==========================");
 		//hdfsTask();
-		localTask();
+		//localTask();
 	}
 	
 	public void localTask(){

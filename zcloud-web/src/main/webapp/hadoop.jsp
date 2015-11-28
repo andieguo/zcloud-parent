@@ -53,7 +53,8 @@
         }
         var dfs = {"nondfsused":8.403468288E9,"capacity":1.0568937472E11,"dfsused":3.9806976E8,"datanode":[{"nondfsused":4201721856,"name":"192.168.100.136:50010","state":"In Service","capacity":52844687360,"dfsused":199049216},{"nondfsused":4201746432,"name":"192.168.100.134:50010","state":"In Service","capacity":52844687360,"dfsused":199020544}]};
         var mr = {"running": [{"map_completed": "442", "reduce_completed": " 0", "name": "PiEstimator", "started": "Tue Apr 28 14:24:21 CST 2015", "reduce_total": "1", "map_total": "500", "user": "hadoop", "id": "job_201504251425_0007"}], "completed": [{"started": "Tue Apr 28 13:52:48 CST 2015", "user": "hadoop", "id": "job_201504251425_0005", "name": "PiEstimator"}, {"started": "Tue Apr 28 14:01:26 CST 2015", "user": "hadoop", "id": "job_201504251425_0006", "name": "PiEstimator"}, {"started": "Sat Apr 25 18:26:59 CST 2015", "user": "hadoop", "id": "job_201504251425_0004", "name": "PiEstimator"}, {"started": "Sat Apr 25 18:17:21 CST 2015", "user": "hadoop", "id": "job_201504251425_0003", "name": "PiEstimator"}, {"started": "Sat Apr 25 14:40:20 CST 2015", "user": "hadoop", "id": "job_201504251425_0002", "name": "PiEstimator"}, {"started": "Sat Apr 25 14:30:14 CST 2015", "user": "hadoop", "id": "job_201504251425_0001", "name": "PiEstimator"}]};
-        function on_dfs(err, dfs) {
+        
+		function printHdfsTable(err, dfs) {
          var diskBytes = 1024 * 1024 * 1024;
         	var capacity = dfs.capacity;
         	var nondfsused = dfs.nondfsused;
@@ -92,7 +93,7 @@
             $("#tab_dfs").append(tr2); 
         }
         
-        function printTable(data,tab){
+        function printRunJobTable(data,tab){
         		tab.not("tr:first").empty();
 	        	for (var i=0; i<data.length; i++) {
 	     		   var mapProgress = (data[i].mapProgress).toFixed(2)*100;
@@ -121,7 +122,7 @@
 	      	  }
           }
         
-       function printTable1(data,tab){
+       function printJobTable(data,tab){
     	   for (var i=0; i<data.length; i++) {
      	      var tr1 = "<tr>"; 
 	         tr1 += "<td>"+data[i].jobId+"</td>";
@@ -143,7 +144,7 @@
 					if(data.running.length > 0){
 						console.log("执行了getRuningJob方法");
 						window.setTimeout(getRuningJob,1000);//休息1S后执行getRuningJob方法
-						printTable(data.running,$("#tab_running"));
+						printRunJobTable(data.running,$("#tab_running"));
 					}
 				},
 				error : function() {
@@ -159,9 +160,9 @@
 				dataType : "json",
 				success : function(data){//回调函数 
 					//console.log(data);
-					printTable(data.failed,$("#tab_failed"));
-		        	printTable1(data.completed,$("#tab_completed"));
-		        	printTable1(data.killed,$("#tab_killed"));
+					printRunJobTable(data.failed,$("#tab_failed"));
+		        	printJobTable(data.completed,$("#tab_completed"));
+		        	printJobTable(data.killed,$("#tab_killed"));
 				},
 				error : function() {
 					alert("系统出现问题");
@@ -178,21 +179,54 @@
 				complete:function(){$("#load").hide();},
   				success : function(data){//回调函数 
   					console.log(data);
-  					on_dfs(null, data);
+  					printHdfsTable(null, data);
   				},
   				error : function() {
   					alert("系统出现问题");
   				}
   			});
       }
-       
+	  
+	  function getFileSystem(command,parentDir){
+		  $.ajax({//调用JQuery提供的Ajax方法 
+				type : "GET",
+				url : "servlet/filesystem",
+				data : {command:command,parentDir:parentDir},
+				dataType : "json",
+				success : function(data){//回调函数 
+					errortag = false;
+					console.log('data：',data);
+					printFileSystem(parentDir,data.FileStatuses.FileStatus,$("#tab_filesystem"));
+				},
+				error : function() {
+					errortag = true;
+					alert("系统出现问题");
+				}
+			});
+	  }
+	  
+	  function printFileSystem(parentDir,data,tab){
+    	   for (var i=0; i<data.length; i++) {
+     	      var tr1 = "<tr>"; 
+	         tr1 += "<td><a href='' >"+data[i].pathSuffix+"</a></td>";
+	         tr1 += "<td>"+data[i].type+"</td>";
+	         tr1 += "<td>"+data[i].blockSize+"</td>";
+	         tr1 += "<td>"+data[i].replication+"</td>"; 
+			 tr1 += "<td>"+data[i].modificationTime+"</td>"; 
+			 tr1 += "<td>"+data[i].permission+"</td>"; 
+			 tr1 += "<td>"+data[i].owner+"</td>"; 
+			 tr1 += "<td>"+data[i].group+"</td>"; 
+	         tr1 += '</tr>';    
+	         tab.append(tr1);                          
+     		}   
+         }
+      var parentDir;
 	  $(function(){
 		   getRuningJob();
 		   getOtherJob();
 		   getNameNode();
-        	$("#mapreduceId").click(function(){
-        		
-        	});
+		   //var url = 'http://192.168.100.141:50070/webhdfs/v1/user/hadoop/?op=LISTSTATUS';
+           getFileSystem('LISTSTATUS','user/hadoop');
     	});
     </script>
 </head>
@@ -221,8 +255,8 @@
 	<div id="subnav">
 		<ul class="subnav-title">
 			<li><a onClick="onclick_2(this)" href="#qy" data-toggle="tab"><span>DFS</span></a></li>
-			<li><a onClick="onclick_2(this)" id="mapreduceId" href="#zj"
-				data-toggle="tab"><span>Map/Reduce</span></a></li>
+			<li><a onClick="onclick_2(this)" id="mapreduceId" href="#zj"data-toggle="tab"><span>Map/Reduce</span></a></li>
+			<li><a onClick="onclick_2(this)" href="#yh"data-toggle="tab"><span>FileSystem</span></a></li>
 		</ul>
 	</div>
 	<!--二级导航栏E-->
@@ -350,7 +384,37 @@
 				</div>
 			</div>
 		</div>
-		<!--Map/Reduce E-->
+		<!--HDFS文件系统		E-->
+		<!--二级导航栏E-->
+		<!--内容S-->
+		<!--DFS S-->
+		<div class="fade active" id="yh">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h3 class="panel-title">hadoop > FileSystem</h3>
+				</div>
+				<div class="panel-body">
+					<table id="tab_filesystem"
+						class="table table-bordered table-condensed table-hover">
+						<thead>
+							<tr>
+								<th>文件名</th>
+								<th>文件类型</th>
+								<th>文件大小</th>
+								<th>备份因子</th>
+								<th>修改时间</th>
+								<th>文件权限</th>
+								<th>拥有者</th>
+								<th>属组</th>
+							</tr>
+						</thead>
+						<tbody>
+
+						</tbody>
+					</table>
+				</div>
+			</div>
+		<!--DFS E-->
 	</div>
 	<div style="clear: both"></div>
 	<!--内容E-->

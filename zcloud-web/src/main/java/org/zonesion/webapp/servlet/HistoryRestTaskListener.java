@@ -50,20 +50,18 @@ public class HistoryRestTaskListener implements ServletContextListener {
 		hConnectionService.connect();//执行HBase连接，为HBase REST服务提供访问HBase连接。
 		ServletContext servletContext = servletContextEvent.getServletContext();
 		conf = new Configuration();
-		String fsDefaultName = servletContext.getInitParameter("fs.default.name");//hdfs://192.168.100.141:9000
-		String mrJobTracker = servletContext.getInitParameter("mapred.job.tracker");//http://192.168.100.141:9001
-		logger.info("fs.default.name"+fsDefaultName);
-		logger.info("mapred.job.tracker"+mrJobTracker);
+		String hostname = servletContext.getInitParameter("fs.default.name.hostname");//192.168.100.141
+		String fsPort = servletContext.getInitParameter("fs.default.name.port");//9000
+		String jobPort = servletContext.getInitParameter("mapred.job.tracker.port");//9001
+		logger.info("fs.default.name.hostname:"+hostname);
+		logger.info("fs.default.name.port:"+fsPort);
+		logger.info("mapred.job.tracker.port:"+jobPort);
 		try {
 			//获取jobClient
-			String jobPort = mrJobTracker.substring(mrJobTracker.lastIndexOf(":")+1, mrJobTracker.length());
-			String jobHostName = mrJobTracker.substring(mrJobTracker.lastIndexOf("/")+1, mrJobTracker.lastIndexOf(":"));
-			jobClient = new JobClient(new InetSocketAddress(jobHostName,Integer.valueOf(jobPort)), conf);
+			jobClient = new JobClient(new InetSocketAddress(hostname,Integer.valueOf(jobPort)), conf);
 			servletContext.setAttribute("jobClient", jobClient);
 			//获取namenode
-			String fsPort = fsDefaultName.substring(fsDefaultName.lastIndexOf(":")+1, fsDefaultName.length());
-			String fsHostName = fsDefaultName.substring(fsDefaultName.lastIndexOf("/")+1, fsDefaultName.lastIndexOf(":"));
-			clientProtocol = DFSClient.createNamenode(new InetSocketAddress(fsHostName,Integer.valueOf(fsPort)), conf);
+			clientProtocol = DFSClient.createNamenode(new InetSocketAddress(hostname,Integer.valueOf(fsPort)), conf);
 			servletContext.setAttribute("clientProtocol", clientProtocol);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

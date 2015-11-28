@@ -6,12 +6,20 @@
 	<display-name>Archetype Created Web Application</display-name>
 
 	<context-param>
-		<param-name>fs.default.name</param-name>
-		<param-value>${fs.default.name}</param-value>
+		<param-name>fs.default.name.hostname</param-name>
+		<param-value>${fs.default.name.hostname}</param-value>
 	</context-param>
 	<context-param>
-		<param-name>mapred.job.tracker</param-name>
-		<param-value>${mapred.job.tracker}</param-value>
+		<param-name>fs.default.name.port</param-name>
+		<param-value>${fs.default.name.port}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>mapred.job.tracker.port</param-name>
+		<param-value>${mapred.job.tracker.port}</param-value>
+	</context-param>
+	<context-param>
+		<param-name>hadoop.namenode.port</param-name>
+		<param-value>${hadoop.namenode.port}</param-value>
 	</context-param>
 	<listener>
 		<listener-class>org.zonesion.webapp.servlet.HistoryRestTaskListener</listener-class>
@@ -26,22 +34,35 @@
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
-	
+
 	<servlet>
 		<servlet-name>NameNodeServlet</servlet-name>
 		<servlet-class>org.zonesion.webapp.servlet.NameNodeServlet</servlet-class>
 	</servlet>
-		
+
 	<servlet>
 		<servlet-name>JobTrackerServlet</servlet-name>
 		<servlet-class>org.zonesion.webapp.servlet.JobTrackerServlet</servlet-class>
 	</servlet>
-	
+
 	<servlet>
-		<servlet-name>RestServlet</servlet-name>
-		<servlet-class>org.zonesion.webapp.servlet.RestServlet</servlet-class>
+		<servlet-name>CloudStackServlet</servlet-name>
+		<servlet-class>org.zonesion.webapp.servlet.CloudStackServlet</servlet-class>
+		<init-param>
+			<param-name>cloudstack.api.hostname</param-name>
+			<param-value>${cloudstack.api.hostname}</param-value>
+		</init-param>
+		<init-param>
+			<param-name>cloudstack.api.port</param-name>
+			<param-value>${cloudstack.api.port}</param-value>
+		</init-param>
 	</servlet>
 	
+	<servlet>
+		<servlet-name>FileSystemServlet</servlet-name>
+		<servlet-class>org.zonesion.webapp.servlet.FileSystemServlet</servlet-class>
+	</servlet>
+
 	<servlet-mapping>
 		<servlet-name>ServletContainer</servlet-name>
 		<url-pattern>/rest/*</url-pattern>
@@ -54,9 +75,13 @@
 		<servlet-name>JobTrackerServlet</servlet-name>
 		<url-pattern>/servlet/jobtracker</url-pattern>
 	</servlet-mapping>
-		<servlet-mapping>
-		<servlet-name>RestServlet</servlet-name>
-		<url-pattern>/servlet/dorest</url-pattern>
+	<servlet-mapping>
+		<servlet-name>CloudStackServlet</servlet-name>
+		<url-pattern>/servlet/cloudstack</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>FileSystemServlet</servlet-name>
+		<url-pattern>/servlet/filesystem</url-pattern>
 	</servlet-mapping>
 
 </web-app>
