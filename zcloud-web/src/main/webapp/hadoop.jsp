@@ -418,7 +418,7 @@
 				<div class="panel-heading">
 					<h3 class="panel-title">hadoop > FileSystem</h3>
 				</div>
-				<div style='margin: 0px; height: 206px; width: 760px;'>
+				<div class="panel-heading">
 					<input id="parentDirText" type="text" value="/user/hadoop/"></input>
 					<input type="submit" value="Go" onClick="getFileSystem('DIRECTORY',$('#parentDirText').val())"></input>
 					<input type="submit" value="Go to parent directory" onClick="goToParentDir()"></input>
