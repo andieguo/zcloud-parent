@@ -94,32 +94,32 @@
         }
         
         function printRunJobTable(data,tab){
-        		tab.not("tr:first").empty();
-	        	for (var i=0; i<data.length; i++) {
-	     		   var mapProgress = (data[i].mapProgress).toFixed(2)*100;
-	     		   var reduceProgress = (data[i].reduceProgress).toFixed(2)*100;
-	     		   console.log("mapProgress",mapProgress);
-		            var tr1 = "<tr>"; 
-		            tr1 += "<td>"+data[i].jobId+"</td>";
-		            tr1 += "<td>"+data[i].jobName+"</td>";
-		            tr1 += "<td>"+data[i].userName+"</td>";
-		            tr1 += "<td>"+data[i].starttime+"</td>"; 
-		            tr1 += '<td width="15%">';
-		            tr1 +=     '<div class="progress">';
-		            tr1 +=           '<div class="progress-bar" role="progressbar" aria-valuenow="'+mapProgress+'"';
-		            tr1 +=                             'aria-valuemin="0" aria-valuemax="100" style="width: '+mapProgress+'%;">';
-		            tr1 +=                            '<span class="sr-only">'+mapProgress+'%</span>';
-		            tr1 +=    '</div></div></td>';
-		            tr1 += '<td>'+mapProgress+'%</td>';
-		            tr1 += '<td width="15%">';
-		            tr1 +=     '<div class="progress">';
-		            tr1 +=           '<div class="progress-bar" role="progressbar" aria-valuenow="'+reduceProgress+'"';
-		            tr1 +=                             'aria-valuemin="0" aria-valuemax="100" style="width: '+reduceProgress+'%;">';
-		            tr1 +=                            '<span class="sr-only">'+reduceProgress+'%</span>';
-		            tr1 +=    '</div></div></td>';
-	          		tr1 += '<td>'+reduceProgress+'%</td></tr>';
-		            tab.append(tr1);  
-	      	  }
+			tab.html('<tr><th width="15%">ID</th><th width="15%">名称</th><th width="15%">所属用户</th><th width="15%">开始时间</th><th width="20%" colspan="2">map进度</th><th width="20%" colspan="2">reduce进度</th></tr>');
+			for (var i=0; i<data.length; i++) {
+			   var mapProgress = (data[i].mapProgress).toFixed(2)*100;
+			   var reduceProgress = (data[i].reduceProgress).toFixed(2)*100;
+			   console.log("mapProgress",mapProgress);
+				var tr1 = "<tr>"; 
+				tr1 += "<td>"+data[i].jobId+"</td>";
+				tr1 += "<td>"+data[i].jobName+"</td>";
+				tr1 += "<td>"+data[i].userName+"</td>";
+				tr1 += "<td>"+data[i].starttime+"</td>"; 
+				tr1 += '<td width="15%">';
+				tr1 +=     '<div class="progress">';
+				tr1 +=           '<div class="progress-bar" role="progressbar" aria-valuenow="'+mapProgress+'"';
+				tr1 +=                             'aria-valuemin="0" aria-valuemax="100" style="width: '+mapProgress+'%;">';
+				tr1 +=                            '<span class="sr-only">'+mapProgress+'%</span>';
+				tr1 +=    '</div></div></td>';
+				tr1 += '<td>'+mapProgress+'%</td>';
+				tr1 += '<td width="15%">';
+				tr1 +=     '<div class="progress">';
+				tr1 +=           '<div class="progress-bar" role="progressbar" aria-valuenow="'+reduceProgress+'"';
+				tr1 +=                             'aria-valuemin="0" aria-valuemax="100" style="width: '+reduceProgress+'%;">';
+				tr1 +=                            '<span class="sr-only">'+reduceProgress+'%</span>';
+				tr1 +=    '</div></div></td>';
+				tr1 += '<td>'+reduceProgress+'%</td></tr>';
+				tab.append(tr1);  
+		  }
           }
         
        function printJobTable(data,tab){
@@ -187,28 +187,45 @@
   			});
       }
 	  
-	  function getFileSystem(command,parentDir){
-		  $.ajax({//调用JQuery提供的Ajax方法 
+	  function getFileSystem(type,parentDir){
+		  $("#parentDirText").val(parentDir);//改变文本框的值
+		  if(type == 'FILE'){
+			 $.ajax({//调用JQuery提供的Ajax方法 
 				type : "GET",
 				url : "servlet/filesystem",
-				data : {command:command,parentDir:parentDir},
-				dataType : "json",
+				data : {command:'OPEN',parentDir:parentDir},
+				dataType : "text",
 				success : function(data){//回调函数 
-					errortag = false;
 					console.log('data：',data);
-					printFileSystem(parentDir,data.FileStatuses.FileStatus,$("#tab_filesystem"));
+					$("#tab_filesystem").html("<textarea style='margin: 0px; height: 206px; width: 760px;'>"+data+"</textarea>");
 				},
 				error : function() {
-					errortag = true;
 					alert("系统出现问题");
 				}
 			});
+		  }else if(type == 'DIRECTORY'){
+			 $.ajax({//调用JQuery提供的Ajax方法 
+				type : "GET",
+				url : "servlet/filesystem",
+				data : {command:'LISTSTATUS',parentDir:parentDir},
+				dataType : "json",
+				success : function(data){//回调函数 
+					console.log('data：',data);
+					printFileSystem(parentDir,data.FileStatuses.FileStatus);
+				},
+				error : function() {
+					alert("系统出现问题");
+				}
+			});
+		  }
+		  
 	  }
 	  
-	  function printFileSystem(parentDir,data,tab){
+	  function printFileSystem(parentDir,data){
+		   $("#tab_filesystem").html("<thead><tr><th>文件名</th><th>文件类型</th><th>文件大小</th><th>备份因子</th><th>修改时间</th><th>文件权限</th><th>拥有者</th><th>属组</th></tr></thead>");
     	   for (var i=0; i<data.length; i++) {
      	      var tr1 = "<tr>"; 
-	         tr1 += "<td><a href='' >"+data[i].pathSuffix+"</a></td>";
+	         tr1 += "<td><a id='fileName' onClick=getFileSystem($(this).parent().next().html(),$('#parentDirText').val()+$(this).html()+'/')>"+data[i].pathSuffix+"</a></td>";
 	         tr1 += "<td>"+data[i].type+"</td>";
 	         tr1 += "<td>"+data[i].blockSize+"</td>";
 	         tr1 += "<td>"+data[i].replication+"</td>"; 
@@ -217,16 +234,24 @@
 			 tr1 += "<td>"+data[i].owner+"</td>"; 
 			 tr1 += "<td>"+data[i].group+"</td>"; 
 	         tr1 += '</tr>';    
-	         tab.append(tr1);                          
+	         $("#tab_filesystem").append(tr1);                          
      		}   
-         }
-      var parentDir;
+       }
+	   
+	   function goToParentDir(){
+		   var parentDir = $('#parentDirText').val();// eg. /user/hadoop/zcloud/
+		   parentDir = parentDir.substring(0,parentDir.length-1); // eg. /user/hadoop/zcloud
+		   var dir = parentDir.substring(0,parentDir.lastIndexOf('/')+1);// eg. /user/hadoop/
+		   //console.log("dir:"+dir);
+		   getFileSystem('DIRECTORY',dir);
+	   }
+
 	  $(function(){
 		   getRuningJob();
 		   getOtherJob();
 		   getNameNode();
 		   //var url = 'http://192.168.100.141:50070/webhdfs/v1/user/hadoop/?op=LISTSTATUS';
-           getFileSystem('LISTSTATUS','user/hadoop');
+           getFileSystem('DIRECTORY','/user/hadoop/');
     	});
     </script>
 </head>
@@ -392,6 +417,12 @@
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h3 class="panel-title">hadoop > FileSystem</h3>
+				</div>
+				<div style='margin: 0px; height: 206px; width: 760px;'>
+					<input id="parentDirText" type="text" value="/user/hadoop/"></input>
+					<input type="submit" value="Go" onClick="getFileSystem('DIRECTORY',$('#parentDirText').val())"></input>
+					<input type="submit" value="Go to parent directory" onClick="goToParentDir()"></input>
+					<input type="submit" value="Go back to DFS home" onClick="getFileSystem('DIRECTORY','/user/hadoop/')"></input>
 				</div>
 				<div class="panel-body">
 					<table id="tab_filesystem"

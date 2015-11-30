@@ -36,7 +36,10 @@ public class FileSystemServlet extends HttpServlet {
 		logger.info("parentDir:"+parentDir);
 		try {
 			if(command.equals("LISTSTATUS")){
-				url = MessageFormat.format("http://{0}:{1}/webhdfs/v1/{2}/?op={3}", hostname,port,parentDir,command);
+				url = MessageFormat.format("http://{0}:{1}/webhdfs/v1{2}?op={3}", hostname,port,parentDir,command);
+				logger.info("url:"+url);
+			}else if(command.equals("OPEN")){
+				url = MessageFormat.format("http://{0}:{1}/webhdfs/v1{2}?op={3}", hostname,port,parentDir,command);
 				logger.info("url:"+url);
 			}
 			String resultJSON = Rest.doRest("GET",url,null);
