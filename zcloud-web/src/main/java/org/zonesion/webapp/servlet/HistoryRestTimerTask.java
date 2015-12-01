@@ -28,6 +28,7 @@ public class HistoryRestTimerTask  extends TimerTask{
 		logger.info("==========================开始执行定时任务==========================");
 		//hdfsTask();
 		//localTask();
+		mapreduceTask();
 	}
 	
 	public void localTask(){
@@ -56,6 +57,23 @@ public class HistoryRestTimerTask  extends TimerTask{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void mapreduceTask(){
+		Thread thread = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				try {
+					org.zonesion.hadoop.mr.hbase.Main.main(null);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		thread.start();
 	}
 	
 	public static void main(String[] args) {

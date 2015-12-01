@@ -28,42 +28,50 @@
 				<version>${junit.version}</version>
 				<scope>test</scope>
 			</dependency>
+			<!-- model -->
 			<dependency>
 				<groupId>org.zonesion.hadoop</groupId>
 				<artifactId>zcloud-base</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>log4j</groupId>
-				<artifactId>log4j</artifactId>
-				<version>${log4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.json</groupId>
-				<artifactId>json</artifactId>
-				<version>${json.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.hadoop</groupId>
-				<artifactId>hadoop-core</artifactId>
-				<version>${hadoop.version}</version>
-			</dependency>
+			<!-- hbase -->
 			<dependency>
 				<groupId>org.apache.hbase</groupId>
 				<artifactId>hbase</artifactId>
 				<version>${hbase.version}</version>
 			</dependency>
+			<!-- hadoop -->
+			<dependency>
+				<groupId>org.apache.hadoop</groupId>
+				<artifactId>hadoop-core</artifactId>
+				<version>${hadoop.version}</version>
+			</dependency>
+			<!-- log4j -->
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>${log4j.version}</version>
+			</dependency>
+			<!-- JSON -->
+			<dependency>
+				<groupId>org.json</groupId>
+				<artifactId>json</artifactId>
+				<version>${json.version}</version>
+			</dependency>
+			<!-- jersey -->
 			<dependency>
 				<groupId>com.sun.jersey</groupId>
 				<artifactId>jersey-server</artifactId>
 				<version>${jersey.version}</version>
 			</dependency>
+			<!-- servlet -->
 			<dependency>
 				<groupId>javax.servlet</groupId>
 				<artifactId>servlet-api</artifactId>
 				<version>${servlet.version}</version>
 				<scope>runtime</scope>
 			</dependency>
+			<!-- jstl -->
 			<dependency>
 				<groupId>taglibs</groupId>
 				<artifactId>standard</artifactId>

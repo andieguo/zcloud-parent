@@ -43,6 +43,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.zonesion.hadoop</groupId>
+			<artifactId>zcloud-mapreduce</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.zonesion.hadoop</groupId>
 			<artifactId>zcloud-hbase</artifactId>
 			<version>${project.version}</version>
 		</dependency>
