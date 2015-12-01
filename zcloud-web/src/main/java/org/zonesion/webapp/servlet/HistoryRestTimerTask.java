@@ -26,48 +26,46 @@ public class HistoryRestTimerTask  extends TimerTask{
 		logger =  Logger.getLogger(HistoryRestTimerTask.class);
 		properties = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/config.properties"));
 		logger.info("==========================开始执行定时任务==========================");
-		//hdfsTask();
+		hdfsTask();//必须将任务放在子线程中执行，否则tomcat执行完任务后，会自动重启
 		//localTask();
-		mapreduceTask();
 	}
 	
 	public void localTask(){
 		//定时上传到本地
-		restLocal =  new RestLocal(properties.getProperty("zcloud.download.local.home"));//在构造方法中有资源的初始化
-		logger.info("tark-zcloud.download.local.home:"+properties.getProperty("zcloud.download.local.home"));
-		restLocal.executeJob(this.getClass().getResource("/sensors.xml").getPath());//在执行完job后自动释放资源
-	}
-	
-	public void hdfsTask(){
-		//定时上传HDFS
-		String hostname = properties.getProperty("fs.default.name.hostname");
-		String hostport = properties.getProperty("fs.default.name.port");
-		String url = String.format("hdfs://%s:%s", hostname,hostport);
-		restHDFS = new RestHDFS(url);
-		logger.info("tark-fs.default.name:"+url);
-		try {
-			restHDFS.executeJob(this.getClass().getResource("/sensors.xml").getPath());//类路径下加载sensors.xml
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	public void mapreduceTask(){
 		Thread thread = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
+				restLocal =  new RestLocal(properties.getProperty("zcloud.download.local.home"));//在构造方法中有资源的初始化
+				logger.info("tark-zcloud.download.local.home:"+properties.getProperty("zcloud.download.local.home"));
+				restLocal.executeJob(this.getClass().getResource("/sensors.xml").getPath());//在执行完job后自动释放资源
+			}
+		});
+		thread.start();
+	}
+	
+	public void hdfsTask(){
+		//定时上传HDFS
+		Thread thread = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				String hostname = properties.getProperty("fs.default.name.hostname");
+				String hostport = properties.getProperty("fs.default.name.port");
+				String url = String.format("hdfs://%s:%s", hostname,hostport);
+				restHDFS = new RestHDFS(url);
+				logger.info("tark-fs.default.name:"+url);
 				try {
-					org.zonesion.hadoop.mr.hbase.Main.main(null);
-				} catch (Exception e) {
+					restHDFS.executeJob(this.getClass().getResource("/sensors.xml").getPath());//类路径下加载sensors.xml
+				} catch (SAXException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
