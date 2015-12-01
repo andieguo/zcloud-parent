@@ -179,6 +179,7 @@ public class RestHDFS extends RestListener
 				if(logListener != null) logListener.log("任务执行完毕！");
 				logger.info("FinnishJobRunable释放连接资源！");
 //				connection.disconnect();
+				close();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 				logger.error(e);
