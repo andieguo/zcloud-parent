@@ -19,12 +19,12 @@ public class HistoryRestTimerTask  extends TimerTask{
 	private RestLocal restLocal;
 	private RestHDFS restHDFS;
 	private Logger logger;
-	private Properties propertis;
+	private Properties properties;
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
 		logger =  Logger.getLogger(HistoryRestTimerTask.class);
-		propertis = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/config.properties"));
+		properties = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/config.properties"));
 		logger.info("==========================开始执行定时任务==========================");
 		//hdfsTask();
 		//localTask();
@@ -32,15 +32,18 @@ public class HistoryRestTimerTask  extends TimerTask{
 	
 	public void localTask(){
 		//定时上传到本地
-		restLocal =  new RestLocal(propertis.getProperty("zcloud.download.local.home"));//在构造方法中有资源的初始化
-		logger.info("tark-zcloud.download.local.home:"+propertis.getProperty("zcloud.download.local.home"));
+		restLocal =  new RestLocal(properties.getProperty("zcloud.download.local.home"));//在构造方法中有资源的初始化
+		logger.info("tark-zcloud.download.local.home:"+properties.getProperty("zcloud.download.local.home"));
 		restLocal.executeJob(this.getClass().getResource("/sensors.xml").getPath());//在执行完job后自动释放资源
 	}
 	
 	public void hdfsTask(){
 		//定时上传HDFS
-		restHDFS = new RestHDFS(propertis.getProperty("fs.default.name"));
-		logger.info("tark-fs.default.name:"+propertis.getProperty("fs.default.name"));
+		String hostname = properties.getProperty("fs.default.name.hostname");
+		String hostport = properties.getProperty("fs.default.name.port");
+		String url = String.format("hdfs://%s:%s", hostname,hostport);
+		restHDFS = new RestHDFS(url);
+		logger.info("tark-fs.default.name:"+url);
 		try {
 			restHDFS.executeJob(this.getClass().getResource("/sensors.xml").getPath());//类路径下加载sensors.xml
 		} catch (SAXException e) {
@@ -53,6 +56,13 @@ public class HistoryRestTimerTask  extends TimerTask{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static void main(String[] args) {
+		String hostname = "192.168.100.10";
+		String hostport = "9000";
+		String url = String.format("hdfs://%s:%s", hostname,hostport);
+		System.out.println(url);
 	}
 
 }
