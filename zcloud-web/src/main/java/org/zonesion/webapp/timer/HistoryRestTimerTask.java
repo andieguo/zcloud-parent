@@ -1,4 +1,4 @@
-package org.zonesion.webapp.servlet;
+package org.zonesion.webapp.timer;
 
 import java.io.IOException;
 import java.util.Properties;
