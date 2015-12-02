@@ -34,6 +34,27 @@
 		</dependency>
 	</dependencies>
 	<build>
+	<finalName>zcloud-hbase</finalName>
+		<filters>
+			<filter>${user.home}/antx.properties</filter>
+		</filters>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>**.xml</include>
+					<include>**.properties</include>
+				</includes>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>**.xml</exclude>
+					<exclude>**.properties</exclude>
+				</excludes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
