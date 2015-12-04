@@ -77,34 +77,31 @@ public class RestHDFS extends RestListener
 			if(!hdfsUtil.check("zcloud")){//HDFS创建zcloud
 				hdfsUtil.mkdir("zcloud");//HDFS上的路径：/user/hadoop/zcloud/
 			}
-			String strUserID = "zcloud"+File.separator+historyURL.getId();
-			if(!hdfsUtil.check(strUserID)){//HDFS创建
-				hdfsUtil.mkdir(strUserID);//HDFS上的路径：/user/hadoop/zcloud/1155223593
+			String hdfsUserID = "zcloud"+File.separator+historyURL.getId();
+			if(!hdfsUtil.check(hdfsUserID)){//HDFS创建
+				hdfsUtil.mkdir(hdfsUserID);//HDFS上的路径：/user/hadoop/zcloud/1155223593
 			}
-			String strChannal = strUserID+File.separator+historyURL.getChannal().replace(":", "_");//HDFS上的路径：/user/hadoop/zcloud/1155223593/00_11_22/
-			if(!hdfsUtil.check(strChannal)){//HDFS创建
-				 hdfsUtil.mkdir(strChannal);
+			String hdfsChannal = hdfsUserID+File.separator+historyURL.getChannal().replace(":", "_");//HDFS上的路径：/user/hadoop/zcloud/1155223593/00_11_22/
+			if(!hdfsUtil.check(hdfsChannal)){//HDFS创建
+				 hdfsUtil.mkdir(hdfsChannal);
 			}
 			//文件名以startAt命令
-			File file = new File(strChannal+startAt.replace(":", "-"));///user/hadoop/zcloud/1155223593/channalid/startat.txt
+			File hdfsFile = new File(hdfsChannal+startAt.replace(":", "-"));//  /user/hadoop/zcloud/1155223593/channalid/startat.txt
 			String localSize = properties.getProperty(historyURL.getId()+";"+historyURL.getChannal()+";"+startAt, "2000");
-			//如果文件在HDFS上存在，且服务器段的分片数据为2000个，且本地分片的大小为2000个
-			if(hdfsUtil.check(file.getPath()) && serverSize == 2000 && Integer.valueOf(localSize).equals(2000)){
-				logger.info("完整文件已经保存到HDFS");
-			}else{
-				File temp = new File(startAt.replace(":", "-"));
-				OutputStream outputStream = new FileOutputStream(temp);
-				OutputStreamWriter writer = new OutputStreamWriter(outputStream,"GBk");
-				writer.write(result);//保存读取到的数据到文件
-				writer.close();
-				if(logListener != null) logListener.log("成功上传："+temp.getName());
-				logger.info("成功上传："+temp.getName()+"到"+strChannal);
-				hdfsUtil.put(temp.getPath(), strChannal);//上传到HDFS上
-			}
 			if(serverSize == 2000){//判断其为完整的文件的条件
+				if(hdfsUtil.check(hdfsFile.getPath()) && Integer.valueOf(localSize).equals(2000)){
+					//如果文件在HDFS上存在，且服务器段的分片数据为2000个，且本地分片的大小为2000个
+					logger.info("完整文件已经保存到HDFS");
+				}else{
+					uploadHDFS(startAt.replace(":", "-"),result,hdfsChannal);
+				}
+				//记录最后一个分片的开始时间点,用于指定开始时间
 				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
+				if(!Integer.valueOf(localSize).equals(2000)) 
+					properties.remove(historyURL.getId()+";"+historyURL.getChannal()+";"+startAt);
 				return endAt;
 			}else{//最后一片段文件
+				uploadHDFS(startAt.replace(":", "-"),result,hdfsChannal);
 				//记录最后一个分片的开始时间点,用于指定开始时间
 				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
 				//记录最后一个分片的本地文件大小
@@ -113,6 +110,17 @@ public class RestHDFS extends RestListener
 			}
 		}
 		return "";
+	}
+	
+	public void uploadHDFS(String filename,String result,String hdfsPath) throws Exception{
+		File file = new File(filename);//
+		OutputStream outputStream = new FileOutputStream(file);
+		OutputStreamWriter writer = new OutputStreamWriter(outputStream,"GBk");
+		writer.write(result);//保存读取到的数据到文件
+		writer.close();
+		if(logListener != null) logListener.log("成功上传："+file.getName());
+		logger.info("成功上传："+file.getName()+"到"+hdfsPath);
+		hdfsUtil.put(file.getPath(), hdfsPath);//上传到HDFS上
 	}
 
 	//查询

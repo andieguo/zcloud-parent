@@ -80,7 +80,7 @@ public class HistoryRestTaskListener implements ServletContextListener {
 		QuartzManager.addJob("job_zcloud_hdfs", HdfsDownJob.class.getName(), properties.getProperty("zcloud.download.hdfs.timer"));
 		//启动定时任务（访问智云历史数据，并下载到本地）
 		logger.info("local_timer:"+properties.getProperty("zcloud.download.local.timer"));
-		QuartzManager.addJob("job_zcloud_local", LocalDownJob.class.getName(), properties.getProperty("zcloud.download.hdfs.timer"));
+		QuartzManager.addJob("job_zcloud_local", LocalDownJob.class.getName(), properties.getProperty("zcloud.download.local.timer"));
 	}
 	
 	public static void main(String[] args) {

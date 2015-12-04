@@ -89,21 +89,21 @@ public class RestLocal extends RestListener
 			//本地创建文件zcloud/userid/channal/file
 			File file = new File(mkdirChannal.getPath()+File.separator+startAt.replace(":", "-"));//文件名以startAt命令
 			String localSize = properties.getProperty(historyURL.getId()+";"+historyURL.getChannal()+";"+startAt, "2000");
-			//如果本地文件存在，且服务器端的数据为2000个，且本地分片的大小为2000个
-			if(file.exists() && serverSize == 2000 && Integer.valueOf(localSize).equals(2000)){
-				logger.info("完整文件已经保存");
-			}else{
-				OutputStream outputStream = new FileOutputStream(file);
-				OutputStreamWriter writer = new OutputStreamWriter(outputStream,"GBk");
-				if(logListener != null) logListener.log("成功下载："+file);
-				logger.info("成功下载："+file);
-				writer.write(result);//保存读取到的数据到文件
-				writer.close();
-			}
-			if(serverSize == 2000){//判断其为完整的文件的条件
+			if(serverSize == 2000){//判断服务器文件是否完整
+				if(file.exists() && Integer.valueOf(localSize).equals(2000)){//判断本地文件是否存在
+					if(logListener != null) logListener.log("完整文件已经保存");
+					logger.info("完整文件已经保存");
+				}else{
+					saveFile(logListener, logger, file, result);
+				}
+				//记录最后一个分片的开始时间点,用于指定开始时间
 				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
+			    //记录最后一个分片的本地文件大小
+				if(!Integer.valueOf(localSize).equals(2000))
+					properties.remove(historyURL.getId()+";"+historyURL.getChannal()+";"+startAt);
 				return endAt;
-			}else{//最后一个片段文件
+			}else{//服务器上最后一个片段文件
+				saveFile(logListener, logger, file, result);
 				//记录最后一个分片的开始时间点,用于指定开始时间
 				properties.setProperty(historyURL.getId()+";"+historyURL.getChannal(), startAt);
 				//记录最后一个分片的本地文件大小
@@ -112,6 +112,15 @@ public class RestLocal extends RestListener
 			}
 		}
 		return "";
+	}
+	//保存到本地
+	public void saveFile(LogListener logListener,Logger logger,File file,String result) throws IOException{
+		OutputStream outputStream = new FileOutputStream(file);
+		OutputStreamWriter writer = new OutputStreamWriter(outputStream,"GBk");
+		if(logListener != null) logListener.log("成功下载："+file);
+		logger.info("成功下载："+file);
+		writer.write(result);//保存读取到的数据到文件
+		writer.close();
 	}
 
 	//查询
