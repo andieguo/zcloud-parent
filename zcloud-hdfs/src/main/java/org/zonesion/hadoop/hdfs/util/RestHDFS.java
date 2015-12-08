@@ -41,25 +41,20 @@ public class RestHDFS extends RestListener
 	private LogListener logListener;
 	private HDFSUtil hdfsUtil;
 	
-	public RestHDFS(String hdfsName) {
+	public RestHDFS(String hdfsName) throws IOException {
 		super();
-		try {
-			hdfsUtil = new HDFSUtil(hdfsName);
-			//从类路径下加载配置文件
-			PropertyConfigurator.configure(this.getClass().getClassLoader().getResourceAsStream("log4j/log4j.properties"));
-			logger =  Logger.getLogger(RestHDFS.class);
-			//在家目录生成临时文件
-			File file = new File(Constants.MKDIRPATH);
-			if(!file.exists()) file.mkdirs();
-			file = new File(Constants.HDFS_PATH);
-			if(!file.exists()) file.createNewFile();
-			logger.info(Constants.HDFS_PATH);
-			InputStream input = new FileInputStream(file);
-			properties = PropertiesUtil.loadFromInputStream(input);
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.error(e);
-		}
+		hdfsUtil = new HDFSUtil(hdfsName);
+		//从类路径下加载配置文件
+		PropertyConfigurator.configure(this.getClass().getClassLoader().getResourceAsStream("log4j/log4j.properties"));
+		logger =  Logger.getLogger(RestHDFS.class);
+		//在家目录生成临时文件
+		File file = new File(Constants.MKDIRPATH);
+		if(!file.exists()) file.mkdirs();
+		file = new File(Constants.HDFS_PATH);
+		if(!file.exists()) file.createNewFile();
+		logger.info(Constants.HDFS_PATH);
+		InputStream input = new FileInputStream(file);
+		properties = PropertiesUtil.loadFromInputStream(input);
 	}
 
 	//解析JSON格式字符串	
@@ -239,8 +234,8 @@ public class RestHDFS extends RestListener
 	}
 
 	public static void main(String[] args) {
-		RestHDFS rest = new RestHDFS("hdfs://192.168.1.30:9000");
 		try {
+			RestHDFS rest = new RestHDFS("hdfs://192.168.1.30:9000");
 			rest.executeJob("sensors.xml");
 		} catch (SAXException e) {
 			// TODO Auto-generated catch block

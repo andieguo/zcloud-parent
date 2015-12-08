@@ -19,7 +19,7 @@ public class QueryResultServiceImplTest extends TestCase
 		// TODO Auto-generated method stub
 		super.setUp();
 		hConnectionService = HConnectionService.getInstance("zcloud");//单例模式
-		hConnectionService.connect();
+		hConnectionService.connect("KVM-Master,KVM-Slave0,KVM-Slave1");
 		service = new QueryResultServiceImpl(hConnectionService);
 	}
 

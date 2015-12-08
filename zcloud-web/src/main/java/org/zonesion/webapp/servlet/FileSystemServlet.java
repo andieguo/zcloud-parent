@@ -3,6 +3,7 @@ package org.zonesion.webapp.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -10,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.base.util.Rest;
 
 public class FileSystemServlet extends HttpServlet {
@@ -25,8 +27,9 @@ public class FileSystemServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		String hostname = this.getServletContext().getInitParameter("fs.default.name.hostname");//192.168.100.141
-		String port = this.getServletContext().getInitParameter("hadoop.namenode.port");//50070
+		Properties properties = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/config.properties"));
+		String hostname = properties.getProperty("fs.default.name.hostname");//192.168.100.141
+		String port = properties.getProperty("hadoop.namenode.port");//50070
 		String command = request.getParameter("command");//LISTSTATUS
 		String parentDir = request.getParameter("parentDir");//LISTSTATUS
 		String url = null;

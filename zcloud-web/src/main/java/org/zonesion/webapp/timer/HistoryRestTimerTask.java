@@ -55,9 +55,9 @@ public class HistoryRestTimerTask  extends TimerTask{
 				String hostname = properties.getProperty("fs.default.name.hostname");
 				String hostport = properties.getProperty("fs.default.name.port");
 				String url = String.format("hdfs://%s:%s", hostname,hostport);
-				restHDFS = new RestHDFS(url);
-				logger.info("tark-fs.default.name:"+url);
 				try {
+					restHDFS = new RestHDFS(url);
+					logger.info("tark-fs.default.name:"+url);
 					restHDFS.executeJob(this.getClass().getResource("/sensors.xml").getPath());//类路径下加载sensors.xml
 				} catch (SAXException e) {
 					// TODO Auto-generated catch block

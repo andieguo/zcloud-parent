@@ -3,6 +3,7 @@ package org.zonesion.webapp.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -10,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.base.util.Rest;
 
 public class CloudStackServlet extends HttpServlet {
@@ -26,9 +28,10 @@ public class CloudStackServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		Properties properties = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/config.properties"));
 		String command = request.getParameter("command");
-		String hostname = this.getInitParameter("cloudstack.api.hostname");
-		String port = this.getInitParameter("cloudstack.api.port");
+		String hostname = properties.getProperty("cloudstack.api.hostname");
+		String port = properties.getProperty("cloudstack.api.port");
 		logger.info("command:"+command);
 		logger.info("hostname:"+hostname);
 		logger.info("port:"+port);

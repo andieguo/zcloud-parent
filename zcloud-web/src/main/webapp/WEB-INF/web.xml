@@ -5,7 +5,7 @@
 <web-app>
 	<display-name>Archetype Created Web Application</display-name>
 
-	<context-param>
+	<!-- <context-param>
 		<param-name>fs.default.name.hostname</param-name>
 		<param-value>${fs.default.name.hostname}</param-value>
 	</context-param>
@@ -20,7 +20,7 @@
 	<context-param>
 		<param-name>hadoop.namenode.port</param-name>
 		<param-value>${hadoop.namenode.port}</param-value>
-	</context-param>
+	</context-param>-->
 	<listener>
 		<listener-class>org.zonesion.webapp.servlet.HistoryRestTaskListener</listener-class>
 	</listener>
@@ -48,16 +48,16 @@
 	<servlet>
 		<servlet-name>CloudStackServlet</servlet-name>
 		<servlet-class>org.zonesion.webapp.servlet.CloudStackServlet</servlet-class>
-		<init-param>
+		<!--  <init-param>
 			<param-name>cloudstack.api.hostname</param-name>
 			<param-value>${cloudstack.api.hostname}</param-value>
 		</init-param>
 		<init-param>
 			<param-name>cloudstack.api.port</param-name>
 			<param-value>${cloudstack.api.port}</param-value>
-		</init-param>
+		</init-param>-->
 	</servlet>
-	
+
 	<servlet>
 		<servlet-name>FileSystemServlet</servlet-name>
 		<servlet-class>org.zonesion.webapp.servlet.FileSystemServlet</servlet-class>

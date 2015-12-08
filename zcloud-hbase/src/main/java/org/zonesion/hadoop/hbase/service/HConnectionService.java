@@ -6,7 +6,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -20,7 +19,6 @@ import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.PageFilter;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.hbase.bean.QueryResult;
 
 public class HConnectionService {
@@ -41,10 +39,9 @@ public class HConnectionService {
 		return hConnectionService;
 	}
 	
-	public void connect(){
+	public void connect(String hbaseQuorum){
 		Configuration conf = HBaseConfiguration.create();
-		Properties properties = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/hbase-config.properties"));
-		conf.set("hbase.zookeeper.quorum",properties.getProperty("hbase.zookeeper.quorum"));
+		conf.set("hbase.zookeeper.quorum",hbaseQuorum);
 		try {
 			 connection = HConnectionManager.createConnection(conf);
 			 htable = connection.getTable(tablename);
@@ -108,7 +105,7 @@ public class HConnectionService {
 	
 	public static void main(String[] args) throws NoSuchAlgorithmException {
 		HConnectionService hConnectionService = new HConnectionService("zcloud");
-		hConnectionService.connect();
+		hConnectionService.connect("KVM-Master,KVM-Slave0,KVM-Slave1");
 		List<QueryResult> queryResult = hConnectionService.findByUserid("1155223953");
 		System.out.println(queryResult.size());
 		hConnectionService.disconnect();

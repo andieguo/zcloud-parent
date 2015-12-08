@@ -19,7 +19,6 @@ import org.zonesion.hadoop.hbase.service.HConnectionService;
 import org.zonesion.webapp.quartz.HdfsDownJob;
 import org.zonesion.webapp.quartz.LocalDownJob;
 import org.zonesion.webapp.quartz.QuartzManager;
-import org.zonesion.webapp.timer.TimerManager;
 
 /**
  * 定时任务监听器，当web容器启动时执行定时任务
@@ -50,16 +49,16 @@ public class HistoryRestTaskListener implements ServletContextListener {
 		// TODO Auto-generated method stub
 		System.out.println("==========================启动容器=========================");
 		//从类路径下加载配置文件
+		conf = new Configuration();
 		PropertyConfigurator.configure(this.getClass().getClassLoader().getResourceAsStream("log4j/log4j.properties"));
 		properties = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/config.properties"));
 		logger =  Logger.getLogger(HistoryRestTaskListener.class);
 		hConnectionService = HConnectionService.getInstance("zcloud");//单例模式,加载zcloud-hbase模块的配置文件
-		hConnectionService.connect();//执行HBase连接，为HBase REST服务提供访问HBase连接。
+		hConnectionService.connect(properties.getProperty("hbase.zookeeper.quorum"));//执行HBase连接，为HBase REST服务提供访问HBase连接。
 		ServletContext servletContext = servletContextEvent.getServletContext();
-		conf = new Configuration();
-		String hostname = servletContext.getInitParameter("fs.default.name.hostname");//192.168.100.141
-		String fsPort = servletContext.getInitParameter("fs.default.name.port");//9000
-		String jobPort = servletContext.getInitParameter("mapred.job.tracker.port");//9001
+		String hostname = properties.getProperty("fs.default.name.hostname");//192.168.100.141
+		String fsPort = properties.getProperty("fs.default.name.port");//9000
+		String jobPort = properties.getProperty("mapred.job.tracker.port");//9001
 		logger.info("fs.default.name.hostname:"+hostname);
 		logger.info("fs.default.name.port:"+fsPort);
 		logger.info("mapred.job.tracker.port:"+jobPort);
