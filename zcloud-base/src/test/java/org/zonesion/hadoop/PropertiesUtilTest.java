@@ -33,7 +33,7 @@ public class PropertiesUtilTest extends TestCase {
 	public void testSetProperties(){
 		InputStream input = this.getClass().getResourceAsStream("/config.properties");
 		Properties pro = PropertiesUtil.loadFromInputStream(input);
-		pro.setProperty("name", "jack");
+		pro.setProperty("name", "中国");
 		String path = this.getClass().getResource("/config.properties").getPath();
 		OutputStream out;
 		try {

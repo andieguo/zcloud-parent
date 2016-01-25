@@ -44,6 +44,11 @@
 		<servlet-name>JobTrackerServlet</servlet-name>
 		<servlet-class>org.zonesion.webapp.servlet.JobTrackerServlet</servlet-class>
 	</servlet>
+	
+	<servlet>
+		<servlet-name>HBaseJobServlet</servlet-name>
+		<servlet-class>org.zonesion.webapp.servlet.HBaseJobServlet</servlet-class>
+	</servlet>
 
 	<servlet>
 		<servlet-name>CloudStackServlet</servlet-name>
@@ -82,6 +87,10 @@
 	<servlet-mapping>
 		<servlet-name>FileSystemServlet</servlet-name>
 		<url-pattern>/servlet/filesystem</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>HBaseJobServlet</servlet-name>
+		<url-pattern>/servlet/hbaseJob</url-pattern>
 	</servlet-mapping>
 
 </web-app>

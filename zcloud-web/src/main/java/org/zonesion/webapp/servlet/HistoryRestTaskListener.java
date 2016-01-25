@@ -2,6 +2,8 @@ package org.zonesion.webapp.servlet;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
@@ -16,9 +18,11 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.zonesion.hadoop.base.util.PropertiesUtil;
 import org.zonesion.hadoop.hbase.service.HConnectionService;
+import org.zonesion.hadoop.hdfs.util.HadoopUtil;
 import org.zonesion.webapp.quartz.HdfsDownJob;
 import org.zonesion.webapp.quartz.LocalDownJob;
 import org.zonesion.webapp.quartz.QuartzManager;
+
 
 /**
  * 定时任务监听器，当web容器启动时执行定时任务
@@ -49,7 +53,6 @@ public class HistoryRestTaskListener implements ServletContextListener {
 		// TODO Auto-generated method stub
 		System.out.println("==========================启动容器=========================");
 		//从类路径下加载配置文件
-		conf = new Configuration();
 		PropertyConfigurator.configure(this.getClass().getClassLoader().getResourceAsStream("log4j/log4j.properties"));
 		properties = PropertiesUtil.loadFromInputStream(this.getClass().getResourceAsStream("/config.properties"));
 		logger =  Logger.getLogger(HistoryRestTaskListener.class);
@@ -62,6 +65,11 @@ public class HistoryRestTaskListener implements ServletContextListener {
 		logger.info("fs.default.name.hostname:"+hostname);
 		logger.info("fs.default.name.port:"+fsPort);
 		logger.info("mapred.job.tracker.port:"+jobPort);
+		conf = new Configuration();
+		conf.set("fs.default.name", "hdfs://"+hostname+":"+fsPort);
+		conf.set("mapred.job.tracker", "http://"+hostname+":"+jobPort);
+		servletContext.setAttribute("fs.default.name", "hdfs://"+hostname+":"+fsPort);
+		servletContext.setAttribute("mapred.job.tracker", "http://"+hostname+":"+jobPort);
 		try {
 			//获取jobClient
 			jobClient = new JobClient(new InetSocketAddress(hostname,Integer.valueOf(jobPort)), conf);
@@ -72,6 +80,23 @@ public class HistoryRestTaskListener implements ServletContextListener {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		//配置HBaseJob所有的jar
+		String path = HistoryRestTaskListener.class.getClassLoader().getResource("").toString();
+		System.setProperty("path.separator", ":");
+		List<String> jarPathList = new ArrayList<String>();
+		jarPathList.add(path.substring(0, path.indexOf("classes")) + "lib/json-20140107.jar");
+		jarPathList.add(path.substring(0, path.indexOf("classes")) + "lib/guava-11.0.2.jar");
+		jarPathList.add(path.substring(0, path.indexOf("classes")) + "lib/hbase-0.94.20.jar");
+		jarPathList.add(path.substring(0, path.indexOf("classes")) + "lib/protobuf-java-2.4.0a.jar");
+		jarPathList.add(path.substring(0, path.indexOf("classes")) + "lib/zookeeper-3.4.5.jar");
+		for(String key : jarPathList){
+			try {
+				HadoopUtil.addJarToDistributedCache(key, conf);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		/**========================================定时任务执行=====================================================**/
 		//启动定时任务(访问智云历史数据，并上传到HDFS)

@@ -101,6 +101,18 @@ function analyze(data){
 	return result;
 }
 
+function convert(num){
+	if(num > 1000){
+		num = Math.round(( num/1000) * 100) / 100;
+		num = num + "k";
+	}
+	if(num > 10000){
+		num = Math.round(( num/10000) * 100) / 100;
+		num = num + "w";
+	}
+	return num;
+}
+
 //绘制曲线
 function drawCurve(unit,categories,curveSeries) {
     $('#container01').highcharts({
