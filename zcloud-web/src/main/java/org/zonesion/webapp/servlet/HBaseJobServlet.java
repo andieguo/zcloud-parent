@@ -70,7 +70,9 @@ public class HBaseJobServlet extends HttpServlet{
 			}
 		}
 		try {
-			job.waitForCompletion(true);
+			// 提交job给hadoop集群，然后hadoop集群开始执行.
+			job.submit();
+			req.getRequestDispatcher("/job.jsp").forward(req, resp);
 		} catch (ClassNotFoundException | InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

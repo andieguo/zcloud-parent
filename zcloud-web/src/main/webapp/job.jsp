@@ -35,6 +35,13 @@
 #qy {
 	z-index: 4
 }
+.panel-title-right {
+	float: right;
+}
+.panel-title-right form {
+	display: inline-block;
+	margin: -3px 0 0 0;
+}
 </style>
 <script>
         function onclick_2(obj){
@@ -158,10 +165,15 @@
 		<div class="fade in active" id="zj">
 			<div class="panel panel-default">
 				<div class="panel-heading">
-					<h3 class="panel-title">job > 数据计算</h3>
-					<form action="/servlet/hbaseJob" method="get">
-						<span>点击启动数据计算：<input class="button button-blue" name="" type="submit" value="启动" /></span>
-					</form>
+					<h3 class="panel-title">
+						job > 数据计算
+						<span class="panel-title-right">
+						<form action="servlet/hbaseJob" method="get">
+							点击启动数据计算：
+							<input class="button button-blue" name="" type="submit" value="启动" />
+						</form>
+						</span>
+					</h3>
 				</div>
 				<div class="panel-heading">
 					<h3 class="panel-title">正在进行的任务</h3>
