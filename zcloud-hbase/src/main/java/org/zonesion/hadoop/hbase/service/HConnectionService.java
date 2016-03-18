@@ -9,7 +9,10 @@ import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.ZooKeeperConnectionException;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HConnection;
 import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.client.HTableInterface;
@@ -44,6 +47,15 @@ public class HConnectionService {
 		conf.set("hbase.zookeeper.quorum",hbaseQuorum);
 		try {
 			 connection = HConnectionManager.createConnection(conf);
+			 HBaseAdmin admin = new HBaseAdmin(conf);
+			 if (!admin.tableExists(tablename)) {
+					System.out.println("table ["+tablename+"] not exists!creating.......");
+					HTableDescriptor htd = new HTableDescriptor(tablename);
+					HColumnDescriptor tcd = new HColumnDescriptor("content");
+					htd.addFamily(tcd);// 创建列族
+					admin.createTable(htd);// 创建表
+			 }
+			 admin.close();	
 			 htable = connection.getTable(tablename);
 		} catch (ZooKeeperConnectionException e) {
 			e.printStackTrace();

@@ -46,37 +46,50 @@ public class HBaseJobServlet extends HttpServlet{
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		String tablename = "zcloud";
-		Configuration conf = HBaseConfiguration.create();
-		ServletContext servletContext = getServletContext();
-		conf.set("fs.default.name", (String)servletContext.getAttribute("fs.default.name"));
-		conf.set("mapred.job.tracker", (String)servletContext.getAttribute("mapred.job.tracker"));
-		conf.set("mapred.jar", Constants.JAR_HOME);
-		Properties properties = PropertiesUtil.loadFromInputStream(HBaseJobServlet.class.getResourceAsStream("/hbase-config.properties"));
-		conf.set("hbase.zookeeper.quorum",properties.getProperty("hbase.zookeeper.quorum"));
-		Job job = new Job(conf, "PMHBaseMain");
-		job.setJarByClass(HBaseJobServlet.class);
-		job.setMapperClass(PMMapper.class);
-		TableMapReduceUtil.initTableReducerJob(tablename, PMReduce.class, job);
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(Text.class);
-		/**** 准备输出 *****/
-		prepareOutput(conf, tablename);
-		/**** 准备输入 *****/
-		FileSystem fs = FileSystem.get(conf);
-		for (String str : listFile(fs, "/user/hadoop/zcloud")) {// 遍历/user/hadoop/zcloud下的输入
-			for (String str1 : listFile(fs, str)) {
-				FileInputFormat.addInputPath(job, new Path(str1));
+		new Thread() {
+			public void run() {
+				try {
+					String tablename = "zcloud";
+					Configuration conf = HBaseConfiguration.create();
+					ServletContext servletContext = getServletContext();
+					conf.set("fs.default.name", (String)servletContext.getAttribute("fs.default.name"));
+					conf.set("mapred.job.tracker", (String)servletContext.getAttribute("mapred.job.tracker"));
+					
+					String path = HBaseJobServlet.class.getClassLoader().getResource("").toString().replaceAll("%20", " ");
+					
+					/* 设置mapraduce jar*/
+					String mr_jar = path.substring(0, path.indexOf("classes")) + "lib/"+Constants.JAR_mapreduce_zcloud;
+					
+					conf.set("mapred.jar", mr_jar);
+					Properties properties = PropertiesUtil.loadFromInputStream(HBaseJobServlet.class.getResourceAsStream("/config.properties"));
+					
+					conf.set("hbase.zookeeper.quorum",properties.getProperty("hbase.zookeeper.quorum"));
+					Job job = new Job(conf, "PMHBaseMain");
+					job.setJarByClass(HBaseJobServlet.class);
+					job.setMapperClass(PMMapper.class);
+					TableMapReduceUtil.initTableReducerJob(tablename, PMReduce.class, job);
+					job.setOutputKeyClass(Text.class);
+					job.setOutputValueClass(Text.class);
+					/**** 准备输出 *****/
+					prepareOutput(conf, tablename);
+					/**** 准备输入 *****/
+					FileSystem fs = FileSystem.get(conf);
+					for (String str : listFile(fs, "/user/hadoop/zcloud")) {// 遍历/user/hadoop/zcloud下的输入
+						for (String str1 : listFile(fs, str)) {
+							FileInputFormat.addInputPath(job, new Path(str1));
+						}
+					}
+				
+					// 提交job给hadoop集群，然后hadoop集群开始执行.
+					job.submit();
+					
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
-		try {
-			// 提交job给hadoop集群，然后hadoop集群开始执行.
-			job.submit();
-			req.getRequestDispatcher("/job.jsp").forward(req, resp);
-		} catch (ClassNotFoundException | InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		}.start();
+		req.getRequestDispatcher("/job.jsp").forward(req, resp);
 	}
 
 	public static void prepareOutput(Configuration conf, String tablename) {

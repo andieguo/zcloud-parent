@@ -1,5 +1,6 @@
 package org.zonesion.webapp.servlet;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -11,6 +12,9 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.filecache.DistributedCache;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.DFSClient;
 import org.apache.hadoop.hdfs.protocol.ClientProtocol;
 import org.apache.hadoop.mapred.JobClient;
@@ -82,7 +86,8 @@ public class HistoryRestTaskListener implements ServletContextListener {
 			e.printStackTrace();
 		}
 		//配置HBaseJob所有的jar
-		String path = HistoryRestTaskListener.class.getClassLoader().getResource("").toString();
+		String path = HistoryRestTaskListener.class.getClassLoader().getResource("").toString().replaceAll("%20", " ");
+		
 		System.setProperty("path.separator", ":");
 		List<String> jarPathList = new ArrayList<String>();
 		jarPathList.add(path.substring(0, path.indexOf("classes")) + "lib/json-20140107.jar");
@@ -92,7 +97,8 @@ public class HistoryRestTaskListener implements ServletContextListener {
 		jarPathList.add(path.substring(0, path.indexOf("classes")) + "lib/zookeeper-3.4.5.jar");
 		for(String key : jarPathList){
 			try {
-				HadoopUtil.addJarToDistributedCache(key, conf);
+				System.out.println("xxx key "+key);
+				addJarToDistributedCache(key, conf);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -100,19 +106,61 @@ public class HistoryRestTaskListener implements ServletContextListener {
 		}
 		/**========================================定时任务执行=====================================================**/
 		//启动定时任务(访问智云历史数据，并上传到HDFS)
-		logger.info("hdfs_timer:"+properties.getProperty("zcloud.download.hdfs.timer"));
-		QuartzManager.addJob("job_zcloud_hdfs", HdfsDownJob.class.getName(), properties.getProperty("zcloud.download.hdfs.timer"));
+		//logger.info("hdfs_timer:"+properties.getProperty("zcloud.download.hdfs.timer"));
+		//String t = properties.getProperty("zcloud.download.hdfs.timer");
+		//if (t!=null && t.length()>0) {
+		//	QuartzManager.addJob("job_zcloud_hdfs", HdfsDownJob.class.getName(), t);
+		//}
 		//启动定时任务（访问智云历史数据，并下载到本地）
-		logger.info("local_timer:"+properties.getProperty("zcloud.download.local.timer"));
-		QuartzManager.addJob("job_zcloud_local", LocalDownJob.class.getName(), properties.getProperty("zcloud.download.local.timer"));
+		//logger.info("local_timer:"+properties.getProperty("zcloud.download.local.timer"));
+		//QuartzManager.addJob("job_zcloud_local", LocalDownJob.class.getName(), properties.getProperty("zcloud.download.local.timer"));
+	}
+	
+	public static void addJarToDistributedCache(String path, Configuration conf) throws IOException {
+
+		File jarFile = new File(path);
+
+		// Mount HDFS
+		FileSystem fs = FileSystem.get(conf);
+
+		// Copy (override) jar file to HDFS
+		Path srcPath = new Path(path); // 原路径
+		Path mkdir = new Path("/user/hadoop/lib/");
+		if(!fs.exists(mkdir)){
+			fs.mkdirs(mkdir);
+		}
+		Path dstPath = new Path("/user/hadoop/lib/" + jarFile.getName());// 目标路径
+		// 调用文件系统的文件复制函数,前面参数是指是否删除原文件，true为删除，默认为false
+		if(!fs.exists(dstPath)){
+			fs.copyFromLocalFile(false, srcPath, dstPath);
+		}
+
+		// Add jar to distributed classPath
+		DistributedCache.addArchiveToClassPath(dstPath, conf);
 	}
 	
 	public static void main(String[] args) {
-		String fsDefaultName = "hdfs://192.168.100.141:9000";
-		String fsPort = fsDefaultName.substring(fsDefaultName.lastIndexOf(":")+1, fsDefaultName.length());
-		String fsHostName = fsDefaultName.substring(fsDefaultName.lastIndexOf("/")+1, fsDefaultName.lastIndexOf(":"));
-		System.out.println(fsPort);
-		System.out.println(fsHostName);
+		String fsDefaultName = "hdfs://192.168.1.124:9000";
+		Configuration conf = new Configuration();
+		conf.set("fs.default.name", fsDefaultName);
+		
+		//配置HBaseJob所有的jar
+		String path = "J:/zonesion02/40.hadoop/zcloud-parent/zcloud-web/target/zcloud-web/WEB-INF/";
+		System.setProperty("path.separator", ":");
+		List<String> jarPathList = new ArrayList<String>();
+		jarPathList.add(path + "lib/json-20140107.jar");
+		jarPathList.add(path + "lib/guava-11.0.2.jar");
+		jarPathList.add(path + "lib/hbase-0.94.20.jar");
+		jarPathList.add(path + "lib/protobuf-java-2.4.0a.jar");
+		jarPathList.add(path + "lib/zookeeper-3.4.5.jar");
+		for(String key : jarPathList){
+			try {
+				addJarToDistributedCache(key, conf);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 }

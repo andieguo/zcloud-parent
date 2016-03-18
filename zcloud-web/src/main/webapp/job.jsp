@@ -112,12 +112,12 @@
 					console.log(data);
 					if(data.running.length > 0){
 						console.log("执行了getRuningJob方法");
-						window.setTimeout(getRuningJob,1000);//休息1S后执行getRuningJob方法
+						window.setTimeout(getRuningJob,2000);//休息1S后执行getRuningJob方法
 						printRunJobTable(data.running,$("#tab_running"));
-					}
+					} else window.setTimeout(getRuningJob,5000);
 				},
 				error : function() {
-					alert("系统出现问题");
+					//alert("系统出现问题");
 				}
 			});
          }
@@ -134,7 +134,7 @@
 		        	printJobTable(data.killed,$("#tab_killed"));
 				},
 				error : function() {
-					alert("系统出现问题");
+					//alert("系统出现问题");
 				}
 			});
          }

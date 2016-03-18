@@ -34,7 +34,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-	<finalName>zcloud-hbase</finalName>
+	<finalName>zcloud-mapreduce</finalName>
 		<filters>
 			<filter>${user.home}/antx.properties</filter>
 		</filters>

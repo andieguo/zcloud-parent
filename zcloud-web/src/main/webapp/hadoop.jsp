@@ -188,36 +188,37 @@
       }
 	  
 	  function getFileSystem(type,parentDir){
-		  $("#parentDirText").val(parentDir);//改变文本框的值
 		  if(type == 'FILE'){
-			 $.ajax({//调用JQuery提供的Ajax方法 
-				type : "GET",
-				url : "servlet/filesystem",
-				data : {command:'OPEN',parentDir:parentDir},
-				dataType : "text",
-				success : function(data){//回调函数 
-					console.log('data：',data);
-					$("#tab_filesystem").html("<textarea style='margin: 0px; height: 206px; width: 760px;'>"+data+"</textarea>");
-				},
-				error : function() {
-					alert("系统出现问题");
-				}
-			});
-		  }else if(type == 'DIRECTORY'){
-			 $.ajax({//调用JQuery提供的Ajax方法 
-				type : "GET",
-				url : "servlet/filesystem",
-				data : {command:'LISTSTATUS',parentDir:parentDir},
-				dataType : "json",
-				success : function(data){//回调函数 
-					console.log('data：',data);
-					printFileSystem(parentDir,data.FileStatuses.FileStatus);
-				},
-				error : function() {
-					alert("系统出现问题");
-				}
-			});
-		  }
+				 $.ajax({//调用JQuery提供的Ajax方法 
+					type : "GET",
+					url : "servlet/filesystem",
+					data : {command:'OPEN',parentDir:parentDir},
+					dataType : "text",
+					success : function(data){//回调函数 
+						console.log('data：',data);
+						$("#tab_filesystem").html("<textarea style='margin: 0px; height: 206px; width: 760px;'>"+data+"</textarea>");
+						 $("#parentDirText").val(parentDir);//改变文本框的值
+					},
+					error : function() {
+						alert("没有找到指定路径："+parentDir);
+					}
+				});
+			  }else if(type == 'DIRECTORY'){
+				 $.ajax({//调用JQuery提供的Ajax方法 
+					type : "GET",
+					url : "servlet/filesystem",
+					data : {command:'LISTSTATUS',parentDir:parentDir},
+					dataType : "json",
+					success : function(data){//回调函数 
+						console.log('data：',data);
+						printFileSystem(parentDir,data.FileStatuses.FileStatus);
+						$("#parentDirText").val(parentDir);//改变文本框的值
+					},
+					error : function() {
+						alert("没有找到指定路径："+parentDir);
+					}
+				});
+			  }
 		  
 	  }
 	  
